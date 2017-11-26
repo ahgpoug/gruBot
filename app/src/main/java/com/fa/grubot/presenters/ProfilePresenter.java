@@ -41,14 +41,24 @@ public class ProfilePresenter {
     }
 
     public void notifyFragmentStarted(Context context, User user) {
-        if (model.isNetworkAvailable(context))
-            getData(true, user);
-        else
-            fragment.setupLayouts(model.isNetworkAvailable(context));
+        model.isNetworkAvailable(context)
+                .doOnNext(result -> {
+                    if (result)
+                        getData(true, user);
+                    else {
+                        fragment.setupLayouts(false);
+                        notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    }
+                })
+                .doOnError(error -> {
+                    fragment.setupLayouts(false);
+                    notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                })
+                .subscribe();
     }
 
     private void getData(final boolean isFirst, final User user) {
-        Observable.defer(() -> Observable.just(model.getItems(user)))
+        Observable.just(model.getItems(user))
                 .filter(result -> result != null)
                 .subscribeOn(Schedulers.io())
                 .timeout(15, TimeUnit.SECONDS)
@@ -58,7 +68,8 @@ public class ProfilePresenter {
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(result -> {
-                    items = result;
+                    items.clear();
+                    items.addAll(result);
                     fragment.setupLayouts(true);
                     notifyViewCreated(Globals.FragmentState.STATE_CONTENT);
                 })
@@ -70,9 +81,12 @@ public class ProfilePresenter {
     }
 
     public void onRetryBtnClick(Context context, User user) {
-        if (model.isNetworkAvailable(context)) {
-            getData(false, user);
-        }
+        model.isNetworkAvailable(context)
+                .doOnNext(result -> {
+                    if (result)
+                        getData(false, user);
+                })
+                .subscribe();
     }
     public void destroy(){
         fragment = null;

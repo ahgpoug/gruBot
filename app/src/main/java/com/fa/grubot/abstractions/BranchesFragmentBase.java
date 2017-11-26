@@ -10,6 +10,11 @@ import java.util.ArrayList;
 
 public interface BranchesFragmentBase {
 
-    void setupToolbar();
-    void setupRecyclerView(ArrayList<BranchOfDiscussions> data);
+    void setupDataView(ArrayList<BranchOfDiscussions> data);
+
+    int getGroupId();
+
+    void setupSwipeRefreshLayout();
+
+    void stopRefreshAnimation();
 }

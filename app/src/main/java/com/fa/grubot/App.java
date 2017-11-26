@@ -16,7 +16,6 @@ public class App extends Application {
     private boolean areAnimationsEnabled = false;
     private boolean isSlidrEnabled = true;
 
-    private int delayTime = 0;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -50,10 +49,6 @@ public class App extends Application {
 
     public void setSlidrEnabled(boolean slidrEnabled) {
         isSlidrEnabled = slidrEnabled;
-    }
-
-    public int getDelayTime() {
-        return delayTime;
     }
 
     public User getCurrentUser() {

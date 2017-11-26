@@ -11,6 +11,7 @@ import com.fa.grubot.objects.misc.VoteOption;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 
 public class TemporaryDataHelper {
@@ -22,6 +23,10 @@ public class TemporaryDataHelper {
 
     private ArrayList<Action> announcementsList = new ArrayList<>();
     private ArrayList<Action> votesList = new ArrayList<>();
+
+    private ArrayList<Action> announcementsArchiveList = new ArrayList<>();
+    private ArrayList<Action> votesArchiveList = new ArrayList<>();
+
     private ArrayList<User> usersList = new ArrayList<>();
     private ArrayList<Group> groupsList = new ArrayList<>();
 
@@ -29,14 +34,21 @@ public class TemporaryDataHelper {
         setUsers();
         setGroups();
         setActions();
+        setBranchesOfGroups();
     }
 
     public ArrayList<Action> getActionsByType(int type) {
-        if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
-            return announcementsList;
-        } else {
-            return votesList;
+        switch (type) {
+            case ActionsFragment.TYPE_ANNOUNCEMENTS:
+                return announcementsList;
+            case ActionsFragment.TYPE_VOTES:
+                return votesList;
+            case ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE:
+                return announcementsArchiveList;
+            case ActionsFragment.TYPE_VOTES_ARCHIVE:
+                return votesArchiveList;
         }
+        return null;
     }
 
     public ArrayList<Action> getActionsByGroupAndType(int type, Group group) {
@@ -62,6 +74,26 @@ public class TemporaryDataHelper {
             announcementsList.add(action);
         } else {
             votesList.add(action);
+        }
+    }
+
+    public void addActionToArchive(int type, Action action) {
+        if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
+            announcementsList.remove(action);
+            announcementsArchiveList.add(action);
+        } else {
+            votesList.remove(action);
+            votesArchiveList.add(action);
+        }
+    }
+
+    public void restoreActionFromArchive(int type, Action action, int position) {
+        if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
+            announcementsArchiveList.remove(action);
+            announcementsList.add(position, action);
+        } else {
+            votesArchiveList.remove(action);
+            votesList.add(position, action);
         }
     }
 
@@ -111,13 +143,35 @@ public class TemporaryDataHelper {
         groupsList.add(new Group(3, "ГРУППА НАМБА ВАН НА РУСИ", new ArrayList<>(Arrays.asList(usersList.get(5), usersList.get(4), usersList.get(3))),null));
     }
 
-    public ArrayList<BranchOfDiscussions> getBranches() {
-        ArrayList<BranchOfDiscussions> branches = new ArrayList<>();
+    private void setBranchesOfGroups() {
+        // gr1
 
-        branches.add(new BranchOfDiscussions(1, 2, "Заблевали пол", new Date(), new Date(), 15));
-        branches.add(new BranchOfDiscussions(2, 5, "Драка детей", new Date(), new Date(), 20));
-        branches.add(new BranchOfDiscussions(3, 34, "Украли сменку", new Date(), new Date(), 25));
+        //gr2
 
-        return branches;
+
+        //gr3 has no branches
+
+
+    }
+
+    public ArrayList<BranchOfDiscussions> getBranches(int idOfGroup) {
+        ArrayList<BranchOfDiscussions> branchesOfGroup = new ArrayList<>();
+        switch (idOfGroup) {
+            case 1:
+                Calendar past = Calendar.getInstance();
+                past.set(2017, 11, 15, 21, 15);
+                branchesOfGroup.add(new BranchOfDiscussions(1, 2, "Заблевали пол", past, Calendar.getInstance(), 15));
+                branchesOfGroup.add(new BranchOfDiscussions(2, 5, "Драка детей", Calendar.getInstance(), Calendar.getInstance(), 20));
+                branchesOfGroup.add(new BranchOfDiscussions(3, 34, "Украли сменку", Calendar.getInstance(), Calendar.getInstance(), 25));
+                break;
+            case 2:
+                branchesOfGroup.add(new BranchOfDiscussions(4, 4, "Золотая медаль никому не нужна", Calendar.getInstance(), Calendar.getInstance(), 14));
+                branchesOfGroup.add(new BranchOfDiscussions(5, 6, "Учитель педофил", Calendar.getInstance(), Calendar.getInstance(), 88));
+                branchesOfGroup.add(new BranchOfDiscussions(6, 19, "Кто такой FACE?", Calendar.getInstance(), Calendar.getInstance(), 11));
+                break;
+            case 3:
+                break;
+        }
+        return branchesOfGroup;
     }
 }

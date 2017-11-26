@@ -8,6 +8,8 @@ import com.fa.grubot.util.Globals;
 
 import java.util.ArrayList;
 
+import io.reactivex.Observable;
+
 public class ProfileModel {
 
     public ProfileModel(){
@@ -23,7 +25,7 @@ public class ProfileModel {
         return items;
     }
 
-    public boolean isNetworkAvailable(Context context){
-        return Globals.InternetMethods.isNetworkAvailable(context);
+    public Observable<Boolean> isNetworkAvailable(Context context) {
+        return Globals.InternetMethods.getNetworkObservable(context);
     }
 }

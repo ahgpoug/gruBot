@@ -1,9 +1,7 @@
 package com.fa.grubot.fragments;
 
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -89,9 +87,7 @@ public class GroupInfoFragment extends Fragment implements GroupInfoFragmentBase
         setHasOptionsMenu(true);
         group = (Group) this.getArguments().getSerializable("group");
         presenter.notifyFragmentStarted(getActivity(), group);
-
         unbinder = ButterKnife.bind(this, v);
-        presenter.notifyViewCreated(state);
 
         return v;
     }
@@ -103,21 +99,19 @@ public class GroupInfoFragment extends Fragment implements GroupInfoFragmentBase
     }
 
     public void showRequiredViews() {
-        new Handler().postDelayed(() -> {
-            progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
 
-            switch (state) {
-                case Globals.FragmentState.STATE_CONTENT:
-                    appBarLayout.setExpanded(true);
-                    content.setVisibility(View.VISIBLE);
-                    content_fam.setVisibility(View.VISIBLE);
-                    break;
-                case Globals.FragmentState.STATE_NO_INTERNET_CONNECTION:
-                    appBarLayout.setExpanded(false);
-                    noInternet.setVisibility(View.VISIBLE);
-                    break;
-            }
-        }, App.INSTANCE.getDelayTime());
+        switch (state) {
+            case Globals.FragmentState.STATE_CONTENT:
+                appBarLayout.setExpanded(true);
+                content.setVisibility(View.VISIBLE);
+                content_fam.setVisibility(View.VISIBLE);
+                break;
+            case Globals.FragmentState.STATE_NO_INTERNET_CONNECTION:
+                appBarLayout.setExpanded(false);
+                noInternet.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     public void showLoadingView() {
@@ -260,7 +254,9 @@ public class GroupInfoFragment extends Fragment implements GroupInfoFragmentBase
         if (App.INSTANCE.areAnimationsEnabled())
             buttonsView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_bottom));
 
-        groupInfoAdapter = new GroupInfoRecyclerAdapter(getActivity(), buttons);
+
+        groupInfoAdapter = new GroupInfoRecyclerAdapter(getActivity(), buttons, group.getId());
+
         groupInfoAdapter.setMode(ExpandableRecyclerAdapter.MODE_ACCORDION);
         buttonsView.setAdapter(groupInfoAdapter);
         groupInfoAdapter.notifyDataSetChanged();

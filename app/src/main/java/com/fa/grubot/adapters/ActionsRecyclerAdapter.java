@@ -103,7 +103,7 @@ public class ActionsRecyclerAdapter extends RecyclerView.Adapter<ActionsRecycler
 
     @Override
     public int getItemCount() {
-        return entries.size();
+        return (entries == null) ? 0 : entries.size();
     }
 
     private int getColorFromDashboardEntry(Action entry){

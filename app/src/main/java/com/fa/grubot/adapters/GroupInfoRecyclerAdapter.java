@@ -20,6 +20,7 @@ import com.fa.grubot.fragments.ProfileFragment;
 import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.dashboard.ActionAnnouncement;
 import com.fa.grubot.objects.dashboard.ActionVote;
+import com.fa.grubot.objects.group.Group;
 import com.fa.grubot.objects.group.GroupInfoButton;
 import com.fa.grubot.objects.group.User;
 import com.fa.grubot.util.Globals;
@@ -36,11 +37,17 @@ public class GroupInfoRecyclerAdapter extends ExpandableRecyclerAdapter<GroupInf
 
     private Context context;
     private ArrayList<GroupInfoRecyclerItem> buttons;
+    private Group group;
 
-    public GroupInfoRecyclerAdapter(Context context, ArrayList<GroupInfoRecyclerItem> buttons) {
+
+    private int groupId;
+
+    public GroupInfoRecyclerAdapter(Context context, ArrayList<GroupInfoRecyclerItem> buttons,
+                                    int groupId) {
         super(context);
         this.context = context;
         this.buttons = buttons;
+        this.groupId = groupId;
 
         setItems(buttons);
     }
@@ -76,7 +83,8 @@ public class GroupInfoRecyclerAdapter extends ExpandableRecyclerAdapter<GroupInf
                 case 2:
                     buttonText.getRootView().setOnClickListener(v -> {
                         Intent intent = new Intent(context, BranchesActivity.class);
-                        intent.putExtra("groupId", 0);
+
+                        intent.putExtra("groupId", groupId);
                         context.startActivity(intent);
                         ((Activity) context).overridePendingTransition(R.anim.right_in, R.anim.left_out);
                     });

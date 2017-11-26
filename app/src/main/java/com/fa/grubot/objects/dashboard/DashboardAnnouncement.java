@@ -1,6 +1,6 @@
 package com.fa.grubot.objects.dashboard;
 
-public class DashboardAnnouncement extends DashboardItem{
+public class DashboardAnnouncement extends DashboardItem {
     private int newAnnouncementsCount;
     private int archiveAnnouncementsCount;
     private int totalAnnouncementsCount;

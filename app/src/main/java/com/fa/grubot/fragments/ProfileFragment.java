@@ -1,9 +1,7 @@
 package com.fa.grubot.fragments;
 
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -73,9 +71,7 @@ public class ProfileFragment extends Fragment implements ProfileFragmentBase, Se
         user = (User) this.getArguments().getSerializable("user");
         setHasOptionsMenu(true);
         presenter.notifyFragmentStarted(getActivity(), user);
-
         unbinder = ButterKnife.bind(this, v);
-        presenter.notifyViewCreated(state);
 
         return v;
     }
@@ -87,21 +83,19 @@ public class ProfileFragment extends Fragment implements ProfileFragmentBase, Se
     }
 
     public void showRequiredViews() {
-        new Handler().postDelayed(() -> {
-            progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
 
-            switch (state) {
-                case Globals.FragmentState.STATE_CONTENT:
-                    appBarLayout.setExpanded(true);
-                    collapsingToolbar.setVisibility(View.VISIBLE);
-                    content.setVisibility(View.VISIBLE);
-                    break;
-                case Globals.FragmentState.STATE_NO_INTERNET_CONNECTION:
-                    appBarLayout.setExpanded(false);
-                    noInternet.setVisibility(View.VISIBLE);
-                    break;
-            }
-        }, App.INSTANCE.getDelayTime());
+        switch (state) {
+            case Globals.FragmentState.STATE_CONTENT:
+                appBarLayout.setExpanded(true);
+                collapsingToolbar.setVisibility(View.VISIBLE);
+                content.setVisibility(View.VISIBLE);
+                break;
+            case Globals.FragmentState.STATE_NO_INTERNET_CONNECTION:
+                appBarLayout.setExpanded(false);
+                noInternet.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     public void showLoadingView() {

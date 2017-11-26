@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.fragments.ActionsFragment;
+import com.fa.grubot.fragments.ActionsTabFragment;
 import com.fa.grubot.objects.dashboard.DashboardAnnouncement;
 import com.fa.grubot.objects.dashboard.DashboardItem;
 import com.fa.grubot.objects.dashboard.DashboardVote;
@@ -46,7 +47,7 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
             ButterKnife.bind(this, view);
 
             announcementsView.setOnClickListener(view1 -> {
-                Fragment fragment = new ActionsFragment();
+                Fragment fragment = new ActionsTabFragment();
                 Bundle args = new Bundle();
                 args.putInt("type", ActionsFragment.TYPE_ANNOUNCEMENTS);
                 fragment.setArguments(args);
@@ -66,7 +67,7 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
             ButterKnife.bind(this, view);
 
             votesView.setOnClickListener(view1 -> {
-                Fragment fragment = new ActionsFragment();
+                Fragment fragment = new ActionsTabFragment();
                 Bundle args = new Bundle();
                 args.putInt("type", ActionsFragment.TYPE_VOTES);
                 fragment.setArguments(args);
@@ -120,6 +121,5 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
     @Override
     public int getItemCount() {
         return (items == null) ? 0 : items.size();
-
     }
 }

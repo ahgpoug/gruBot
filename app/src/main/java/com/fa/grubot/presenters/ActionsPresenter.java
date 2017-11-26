@@ -3,7 +3,6 @@ package com.fa.grubot.presenters;
 
 import android.content.Context;
 
-import com.fa.grubot.R;
 import com.fa.grubot.abstractions.ActionsFragmentBase;
 import com.fa.grubot.models.ActionsModel;
 import com.fa.grubot.objects.dashboard.Action;
@@ -26,12 +25,11 @@ public class ActionsPresenter {
         this.model = new ActionsModel();
     }
 
-    public void notifyViewCreated(int state) {
+    private void notifyViewCreated(int state) {
         fragment.showRequiredViews();
 
         switch (state) {
             case Globals.FragmentState.STATE_CONTENT:
-                fragment.setupToolbar();
                 fragment.setupRecyclerView(actions);
                 fragment.setupSwipeRefreshLayout();
                 break;
@@ -45,14 +43,24 @@ public class ActionsPresenter {
     }
 
     public void notifyFragmentStarted(Context context, int type) {
-        if (model.isNetworkAvailable(context))
-            getData(true, type);
-        else
-            fragment.setupLayouts(false, false);
+        model.isNetworkAvailable(context)
+                .doOnNext(result -> {
+                    if (result)
+                        getData(true, type);
+                    else {
+                        fragment.setupLayouts(false, false);
+                        notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    }
+                })
+                .doOnError(error -> {
+                    fragment.setupLayouts(false, false);
+                    notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                })
+                .subscribe();
     }
 
     private void getData(final boolean isFirst, final int type) {
-        Observable.defer(() -> Observable.just(model.loadActions(type)))
+        Observable.just(model.loadActions(type))
                 .filter(result -> result != null)
                 .subscribeOn(Schedulers.io())
                 .timeout(15, TimeUnit.SECONDS)
@@ -62,12 +70,15 @@ public class ActionsPresenter {
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(result -> {
-                    actions = result;
-                    if (actions.isEmpty())
+                    actions.clear();
+                    actions.addAll(result);
+                    if (actions.isEmpty()) {
                         fragment.setupLayouts(true, false);
-                    else
+                        notifyViewCreated(Globals.FragmentState.STATE_NO_DATA);
+                    } else {
                         fragment.setupLayouts(true, true);
-                    notifyViewCreated(Globals.FragmentState.STATE_CONTENT);
+                        notifyViewCreated(Globals.FragmentState.STATE_CONTENT);
+                    }
                 })
                 .doOnError(error -> {
                     fragment.setupLayouts(false, false);
@@ -77,18 +88,29 @@ public class ActionsPresenter {
     }
 
     public void onRefresh(Context context, int type) {
-        if (model.isNetworkAvailable(context)) {
-            getData(false, type);
-        } else {
-            fragment.setupLayouts(false, false);
-            notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
-        }
+        model.isNetworkAvailable(context)
+                .doOnNext(result -> {
+                    if (result)
+                        getData(false, type);
+                    else {
+                        fragment.setupLayouts(false, false);
+                        notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    }
+                })
+                .doOnError(error -> {
+                    fragment.setupLayouts(false, false);
+                    notifyViewCreated(Globals.FragmentState.STATE_NO_INTERNET_CONNECTION);
+                })
+                .subscribe();
     }
 
     public void onRetryBtnClick(Context context, int type) {
-        if (model.isNetworkAvailable(context)) {
-            getData(false, type);
-        }
+        model.isNetworkAvailable(context)
+                .doOnNext(result -> {
+                    if (result)
+                        getData(false, type);
+                })
+                .subscribe();
     }
 
     public void destroy(){

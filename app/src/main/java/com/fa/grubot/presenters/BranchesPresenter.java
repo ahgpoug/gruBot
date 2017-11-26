@@ -14,14 +14,21 @@ public class BranchesPresenter {
 
     public BranchesPresenter(BranchesFragmentBase fragment) {
         this.fragment = fragment;
+        model = new BranchesModel();
     }
 
-    public void destoy() {
+    public void destroy() {
         fragment = null;
         model = null;
     }
 
     public void notifyViewCreated(){
-        fragment.setupRecyclerView(model.loadBranches());
+        refreshData();
+        fragment.setupSwipeRefreshLayout();
+    }
+
+    public void refreshData() {
+        fragment.setupDataView(model.loadBranches(fragment.getGroupId()));
+        fragment.stopRefreshAnimation();
     }
 }

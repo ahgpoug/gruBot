@@ -1,7 +1,6 @@
 package com.fa.grubot.fragments;
 
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -55,9 +54,7 @@ public class DashboardFragment extends Fragment implements DashboardFragmentBase
         View v = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         presenter.notifyFragmentStarted(getActivity());
-
         unbinder = ButterKnife.bind(this, v);
-        presenter.notifyViewCreated(state);
 
         return v;
     }

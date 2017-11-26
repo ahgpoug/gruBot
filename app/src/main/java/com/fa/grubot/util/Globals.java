@@ -9,6 +9,11 @@ import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class Globals {
     public static class ImageMethods {
@@ -34,7 +39,7 @@ public class Globals {
     }
 
     public static class InternetMethods {
-        public static boolean isNetworkAvailable(Context context) {
+        private static boolean isNetworkAvailable(Context context) {
             Runtime runtime = Runtime.getRuntime();
             int exitValue = -1;
 
@@ -49,7 +54,15 @@ public class Globals {
 
             return netInfo != null && exitValue == 0 && netInfo.isConnectedOrConnecting();
         }
-    }
+
+        public static Observable<Boolean> getNetworkObservable(Context context) {
+            return Observable.just(isNetworkAvailable(context))
+                    .filter(result -> result != null)
+                    .subscribeOn(Schedulers.io())
+                    .timeout(15, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread());
+        }
+     }
 
     public static class FragmentState {
         public static final int STATE_NO_INTERNET_CONNECTION = 61;

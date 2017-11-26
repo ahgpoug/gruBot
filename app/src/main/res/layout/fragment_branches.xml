@@ -1,17 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white">
 
     <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/branches_recycler"
-            android:scrollbars="vertical"
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/branches_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/data_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="НЕТ ВЕТОК ОСБУЖДЕНИЙ"
+                android:visibility="visible"
+                android:layout_marginTop="35dp"
+                android:textSize="25dp"
+                android:gravity="center_horizontal" />
+
+
+        </LinearLayout>
 
 
     </android.support.v4.widget.SwipeRefreshLayout>

@@ -1,6 +1,7 @@
 package com.fa.grubot.objects.chat;
 
-import java.util.Date;
+
+import java.util.Calendar;
 
 /**
  * Created by ni.petrov on 18/11/2017.
@@ -13,13 +14,13 @@ public class BranchOfDiscussions {
 
     private String theme;
 
-    private Date startDate;
+    private Calendar startDate;
 
-    private Date lastDate;
+    private Calendar lastDate;
 
     private int messagesCount;
 
-    public BranchOfDiscussions(int id, int authorsId, String theme, Date startDate, Date lastDate, int messagesCount) {
+    public BranchOfDiscussions(int id, int authorsId, String theme, Calendar startDate, Calendar lastDate, int messagesCount) {
         this.id = id;
         this.authorsId = authorsId;
         this.theme = theme;
@@ -40,12 +41,12 @@ public class BranchOfDiscussions {
         return theme;
     }
 
-    public String getStartDate() {
-        return startDate.toString();
+    public Calendar getStartDate() {
+        return startDate;
     }
 
-    public String getLastDate() {
-        return lastDate.toString();
+    public Calendar getLastDate() {
+        return lastDate;
     }
 
     public int getMessagesCount() {

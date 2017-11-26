@@ -10,6 +10,8 @@ import com.fa.grubot.util.Globals;
 
 import java.util.ArrayList;
 
+import io.reactivex.Observable;
+
 public class DashboardModel {
 
     public DashboardModel(){
@@ -31,7 +33,7 @@ public class DashboardModel {
         return App.INSTANCE.getDataHelper().getVotesCount();
     }
 
-    public boolean isNetworkAvailable(Context context) {
-        return Globals.InternetMethods.isNetworkAvailable(context);
+    public Observable<Boolean> isNetworkAvailable(Context context) {
+        return Globals.InternetMethods.getNetworkObservable(context);
     }
 }

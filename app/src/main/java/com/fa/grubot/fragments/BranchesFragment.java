@@ -3,18 +3,16 @@ package com.fa.grubot.fragments;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.DividerItemDecoration;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.fa.grubot.App;
-import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.BranchesFragmentBase;
 import com.fa.grubot.adapters.BranchesAdapter;
@@ -42,6 +40,11 @@ public class BranchesFragment extends Fragment implements BranchesFragmentBase {
     @BindView(R.id.branches_recycler)
     RecyclerView recyclerView;
 
+    @BindView(R.id.swipeRefreshLayout)
+    SwipeRefreshLayout swipeRefreshLayout;
+
+    @BindView(R.id.data_empty)
+    TextView emptyDataText;
 
 
     @Nullable
@@ -55,40 +58,55 @@ public class BranchesFragment extends Fragment implements BranchesFragmentBase {
 
         unbinder = ButterKnife.bind(this, v);
 
+        presenter.notifyViewCreated();
+
         return v;
     }
 
-    public void setupToolbar() {
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.VISIBLE);
-        toolbar.setTitle("Чаты");
+    @Override
+    public void setupDataView(ArrayList<BranchOfDiscussions> data) {
+        if (!data.isEmpty()) {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyDataText.setVisibility(View.GONE);
 
-        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+            recyclerView.setHasFixedSize(false);
+
+            if (App.INSTANCE.areAnimationsEnabled())
+                recyclerView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_right));
+
+            BranchesAdapter adapter = new BranchesAdapter(data);
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        } else {
+            recyclerView.setVisibility(View.GONE);
+            emptyDataText.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
-    public void setupRecyclerView(ArrayList<BranchOfDiscussions> data){
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(false);
+    public int getGroupId() {
+        return groupId;
+    }
 
-        DividerItemDecoration decoration = new DividerItemDecoration(getActivity(), layoutManager.getOrientation());
-        recyclerView.addItemDecoration(decoration);
-
-        if (App.INSTANCE.areAnimationsEnabled())
-            recyclerView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_right));
-
-        BranchesAdapter adapter = new BranchesAdapter(data);
-        recyclerView.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+    @Override
+    public void setupSwipeRefreshLayout() {
+        swipeRefreshLayout.setColorSchemeResources(R.color.blue, R.color.purple, R.color.green, R.color.orange);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            presenter.refreshData();
+        });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
-        presenter.destoy();
+        presenter.destroy();
+    }
+
+    @Override
+    public void stopRefreshAnimation() {
+        swipeRefreshLayout.setRefreshing(false);
     }
 }

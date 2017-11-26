@@ -13,6 +13,8 @@ import com.fa.grubot.util.Globals;
 
 import java.util.ArrayList;
 
+import io.reactivex.Observable;
+
 public class GroupInfoModel {
     public GroupInfoModel(){
 
@@ -55,7 +57,7 @@ public class GroupInfoModel {
         return groupInfoRecyclerItems;
     }
 
-    public boolean isNetworkAvailable(Context context){
-        return Globals.InternetMethods.isNetworkAvailable(context);
+    public Observable<Boolean> isNetworkAvailable(Context context) {
+        return Globals.InternetMethods.getNetworkObservable(context);
     }
 }
