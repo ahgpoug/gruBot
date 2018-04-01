@@ -48,12 +48,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        App.INSTANCE.closeTelegramClient();
-        super.onPause();
-    }
-
-    @Override
     protected void onStop() {
         App.INSTANCE.closeTelegramClient();
         super.onStop();

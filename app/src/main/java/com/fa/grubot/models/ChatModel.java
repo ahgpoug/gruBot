@@ -120,7 +120,7 @@ public class ChatModel {
                 e.printStackTrace();
                 returnObject = e;
             } finally {
-                //client.close(false);
+                client.close(false);
             }
             return returnObject;
         }

@@ -109,6 +109,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
                 fragment.setupRetryButton();
                 break;
             case FragmentState.STATE_NO_DATA:
+                fragment.setupRecyclerView(messages);
                 break;
         }
     }
