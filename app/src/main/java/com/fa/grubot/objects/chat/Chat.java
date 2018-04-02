@@ -1,8 +1,13 @@
 package com.fa.grubot.objects.chat;
 
+import android.text.format.DateUtils;
+
+import com.fa.grubot.util.DataType;
 import com.github.badoualy.telegram.tl.api.TLAbsInputPeer;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Map;
 
 public class Chat implements Serializable, Cloneable {
@@ -106,5 +111,19 @@ public class Chat implements Serializable, Cloneable {
 
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
+    }
+
+    public String getLastMessageDateAsString() {
+        Long date = lastMessageDate * (type.equals(DataType.VK) ? 1000 : 1);
+        SimpleDateFormat dateFormat;
+
+        if (DateUtils.isToday(date))
+            dateFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        else if (DateUtils.isToday(date + DateUtils.DAY_IN_MILLIS))
+            return "Вчера";
+        else
+            dateFormat = new SimpleDateFormat("dd MMM", Locale.getDefault());
+
+        return dateFormat.format(date);
     }
 }

@@ -72,7 +72,6 @@ public class ChatsListModel {
                         .subscribe(
                         chat -> {
                             dialogs.add(chat);
-                            Log.d("VK DIALOGS", "onnext: dialog added : " + chat.getName());
                         },
                         error -> error.printStackTrace(),
                         () -> presenter.onChatsListResult(new ArrayList<>(dialogs), true)

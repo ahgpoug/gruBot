@@ -79,7 +79,7 @@ public class ChatsListRecyclerAdapter extends RecyclerView.Adapter<ChatsListRecy
             holder.lastMessageFrom.setVisibility(View.GONE);
         }
 
-        holder.lastMessageDate.setText(formatDate(chat.getLastMessageDate()));
+        holder.lastMessageDate.setText(chat.getLastMessageDateAsString());
 
         String imgUri = chat.getImgURI();
         if (imgUri == null)
@@ -87,8 +87,11 @@ public class ChatsListRecyclerAdapter extends RecyclerView.Adapter<ChatsListRecy
         else
             Glide.with(context).load(imgUri).apply(RequestOptions.circleCropTransform()).into(holder.chatImage);
 
-        if (chat.getType().equals(DataType.Telegram))
+        if (chat.getType().equals(DataType.Telegram)) {
             Glide.with(context).load(R.drawable.ic_telegram).into(holder.chatTypeImage);
+        } else if (chat.getType().equals(DataType.VK)){
+            Glide.with(context).load(R.drawable.ic_vk).into(holder.chatTypeImage);
+        }
 
         holder.chatImage.getRootView().setOnClickListener(v -> {
             Intent intent = new Intent(context, ChatActivity.class);

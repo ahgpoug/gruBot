@@ -35,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
 
         loadPreferences();
         (new TryToLoginAsyncTask(this)).execute();
-        if (VKSdk.isLoggedIn()){
+        if (VKSdk.isLoggedIn() && VKAccessToken.tokenFromFile(App.INSTANCE.getVkTokenFilePath()) != null){
             vkUser = new VkUser(VKAccessToken.tokenFromFile(App.INSTANCE.getVkTokenFilePath()).accessToken);
         }
         vkUserChecked = true;
