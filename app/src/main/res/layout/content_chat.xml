@@ -4,12 +4,14 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/chat_bg">
+    android:background="@color/gray_light">
 
     <com.fa.grubot.objects.chat.MessagesListParcelable
         android:id="@+id/messagesList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:incomingBubbleDrawable="@drawable/bg_custom_incoming_message"
+        app:outcomingBubbleDrawable="@drawable/bg_custom_outcoming_message"
         android:layout_above="@+id/input" />
 
     <com.stfalcon.chatkit.messages.MessageInput

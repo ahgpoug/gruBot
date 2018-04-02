@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public interface ChatFragmentBase extends FragmentBase {
     void setupRecyclerView(ArrayList<ChatMessage> messages);
     void setupLayouts(boolean isNetworkAvailable, boolean isHasData);
-    void updateMessagesList(ArrayList<ChatMessage> messages, boolean moveToTop);
+    void addNewMessagesToList(ArrayList<ChatMessage> messages, boolean moveToTop);
     void onMessageReceived(ChatMessage chatMessage);
     boolean isAdapterExists();
     boolean isListEmpty();

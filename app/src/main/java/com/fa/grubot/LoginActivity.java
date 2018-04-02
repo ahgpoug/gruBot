@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.fa.grubot.fragments.InitialLoginFragment;
 import com.fa.grubot.fragments.TelegramLoginFragment;
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 
 import icepick.Icepick;
 
@@ -23,7 +23,7 @@ public class LoginActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             if (getIntent().getExtras() != null) {
                 String directLogin = getIntent().getExtras().getString("directLogin");
-                if (directLogin != null && directLogin.equals(DataType.Telegram)) {
+                if (directLogin != null && directLogin.equals(Consts.Telegram)) {
                     Fragment telegramLoginFragment = TelegramLoginFragment.newInstance();
 
                     FragmentManager fm = getSupportFragmentManager();

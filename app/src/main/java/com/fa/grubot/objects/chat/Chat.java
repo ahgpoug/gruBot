@@ -2,7 +2,7 @@ package com.fa.grubot.objects.chat;
 
 import android.text.format.DateUtils;
 
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 import com.github.badoualy.telegram.tl.api.TLAbsInputPeer;
 
 import java.io.Serializable;
@@ -114,7 +114,7 @@ public class Chat implements Serializable, Cloneable {
     }
 
     public String getLastMessageDateAsString() {
-        Long date = lastMessageDate * (type.equals(DataType.VK) ? 1000 : 1);
+        Long date = lastMessageDate * (type.equals(Consts.VK) ? 1000 : 1);
         SimpleDateFormat dateFormat;
 
         if (DateUtils.isToday(date))

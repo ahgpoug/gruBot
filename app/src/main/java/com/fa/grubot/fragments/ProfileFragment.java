@@ -27,7 +27,7 @@ import com.fa.grubot.objects.misc.ProfileItem;
 import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.presenters.ProfilePresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.ImageLoader;
 
 import java.io.Serializable;
@@ -134,12 +134,12 @@ public class ProfileFragment extends BaseFragment implements ProfileFragmentBase
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 appBarLayout.setExpanded(true);
                 collapsingToolbar.setVisibility(View.VISIBLE);
                 content.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 appBarLayout.setExpanded(false);
                 noInternet.setVisibility(View.VISIBLE);
                 break;
@@ -148,9 +148,9 @@ public class ProfileFragment extends BaseFragment implements ProfileFragmentBase
 
     public void setupLayouts(boolean isNetworkAvailable) {
         if (isNetworkAvailable)
-            state = FragmentState.STATE_CONTENT;
+            state = Consts.STATE_CONTENT;
         else {
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
         }
     }
 

@@ -16,7 +16,7 @@ import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
 import com.fa.grubot.objects.misc.TelegramPhoto;
 import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.presenters.ChatsListPresenter;
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.tl.api.TLAbsInputPeer;
 import com.github.badoualy.telegram.tl.api.TLAbsMessage;
@@ -168,8 +168,10 @@ public class ChatsListModel {
 
                     TelegramPhoto telegramPhoto = photoMap.get(chatId);
                     String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context.get());
+                    if (imgUri == null)
+                        imgUri = chatName;
 
-                    chat = new Chat(String.valueOf(chatId), chatName, null, imgUri, lastMessageText, DataType.Telegram, lastMessageDate * 1000, fromName);
+                    chat = new Chat(String.valueOf(chatId), chatName, null, imgUri, lastMessageText, Consts.Telegram, lastMessageDate * 1000, fromName);
                     chat.setInputPeer(inputPeer);
                     chatsList.add(chat);
                 });

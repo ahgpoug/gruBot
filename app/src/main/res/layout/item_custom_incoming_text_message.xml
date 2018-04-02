@@ -7,12 +7,11 @@
     android:layout_marginRight="16dp"
     android:layout_marginTop="8dp">
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <ImageView
         android:id="@id/messageUserAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"/>
+        android:layout_marginEnd="8dp"/>
 
     <!--this view is needed for custom holder-->
     <ImageView
@@ -20,19 +19,15 @@
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_alignEnd="@id/messageUserAvatar"
-        android:layout_alignRight="@id/messageUserAvatar"
         android:layout_alignTop="@id/messageUserAvatar"
-        android:layout_marginEnd="5dp"
-        android:layout_marginRight="5dp"/>
+        android:layout_marginEnd="5dp" />
 
     <LinearLayout
         android:id="@id/bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="30dp"
-        android:layout_marginRight="30dp"
         android:layout_toEndOf="@id/messageUserAvatar"
-        android:layout_toRightOf="@id/messageUserAvatar"
         android:orientation="vertical">
 
         <TextView
@@ -40,8 +35,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="4dp"
             android:layout_marginStart="8dp"/>
 
     </LinearLayout>
@@ -51,9 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignEnd="@id/bubble"
-        android:layout_alignRight="@id/bubble"
         android:layout_below="@id/bubble"
-        android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"/>
 
 </RelativeLayout>

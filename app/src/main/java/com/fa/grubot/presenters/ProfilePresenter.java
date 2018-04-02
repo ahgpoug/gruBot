@@ -5,7 +5,7 @@ import com.fa.grubot.abstractions.ProfileFragmentBase;
 import com.fa.grubot.models.ProfileModel;
 import com.fa.grubot.objects.misc.ProfileItem;
 import com.fa.grubot.objects.users.User;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -38,11 +38,11 @@ public class ProfilePresenter {
         fragment.showRequiredViews();
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 fragment.setupToolbar(localUser);
                 fragment.setupRecyclerView(items, localUser);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
         }
@@ -77,7 +77,7 @@ public class ProfilePresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleProfileUpdate(user, changes);
@@ -86,7 +86,7 @@ public class ProfilePresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });

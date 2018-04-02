@@ -9,7 +9,7 @@ import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.dashboard.ActionAnnouncement;
 import com.fa.grubot.objects.dashboard.ActionVote;
 import com.fa.grubot.objects.misc.VoteOption;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -56,13 +56,13 @@ public class ActionsPresenter {
         fragment.showRequiredViews();
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 fragment.setupRecyclerView(actions);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
-            case FragmentState.STATE_NO_DATA:
+            case Consts.STATE_NO_DATA:
                 break;
         }
     }
@@ -105,7 +105,7 @@ public class ActionsPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists() && fragment.isListEmpty()) {
                             fragment.setupLayouts(true, true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), action);
@@ -114,12 +114,12 @@ public class ActionsPresenter {
 
                 if (fragment != null && fragment.isListEmpty()) {
                     fragment.setupLayouts(true, false);
-                    notifyViewCreated(FragmentState.STATE_NO_DATA);
+                    notifyViewCreated(Consts.STATE_NO_DATA);
                 }
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false, false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });

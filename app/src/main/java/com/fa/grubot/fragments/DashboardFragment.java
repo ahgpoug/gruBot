@@ -16,7 +16,7 @@ import com.fa.grubot.abstractions.DashboardFragmentBase;
 import com.fa.grubot.adapters.DashboardRecyclerAdapter;
 import com.fa.grubot.objects.dashboard.DashboardItem;
 import com.fa.grubot.presenters.DashboardPresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -106,10 +106,10 @@ public class DashboardFragment extends BaseFragment implements DashboardFragment
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
                 break;
         }
@@ -117,9 +117,9 @@ public class DashboardFragment extends BaseFragment implements DashboardFragment
 
     public void setupLayouts(boolean isNetworkAvailable) {
         if (isNetworkAvailable)
-            state = FragmentState.STATE_CONTENT;
+            state = Consts.STATE_CONTENT;
         else {
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
             dashboardAdapter = null;
         }
     }

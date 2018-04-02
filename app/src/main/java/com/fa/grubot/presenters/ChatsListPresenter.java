@@ -14,7 +14,7 @@ import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.events.telegram.TelegramMessageEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserNameEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.github.badoualy.telegram.api.TelegramClient;
 
 import org.json.JSONException;
@@ -52,13 +52,13 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
         fragment.showRequiredViews();
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 fragment.setupRecyclerView(chats);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
-            case FragmentState.STATE_NO_DATA:
+            case Consts.STATE_NO_DATA:
                 break;
         }
     }
@@ -69,12 +69,12 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
         if (fragment != null) {
             if (chats.isEmpty()) {
                 fragment.setupLayouts(true, false);
-                notifyViewCreated(FragmentState.STATE_NO_DATA);
+                notifyViewCreated(Consts.STATE_NO_DATA);
                 this.chats = chats;
             } else if (!fragment.isAdapterExists() || fragment.isListEmpty()) {
                 this.chats = chats;
                 fragment.setupLayouts(true, true);
-                notifyViewCreated(FragmentState.STATE_CONTENT);
+                notifyViewCreated(Consts.STATE_CONTENT);
             } else if (fragment.isAdapterExists()) {
                 fragment.updateChatsList(chats, moveToTop);
             }

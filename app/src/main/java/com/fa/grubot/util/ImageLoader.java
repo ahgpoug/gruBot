@@ -7,19 +7,16 @@ import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.widget.ImageView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
-/**
- * Created by ni.petrov on 04/11/2017.
- */
-
 public class ImageLoader implements com.stfalcon.chatkit.commons.ImageLoader {
 
-    Fragment fragment;
+    private Fragment fragment;
 
     public ImageLoader(Fragment fragment) {
         this.fragment = fragment;
@@ -27,7 +24,10 @@ public class ImageLoader implements com.stfalcon.chatkit.commons.ImageLoader {
 
     @Override
     public void loadImage(ImageView imageView, String url) {
-        Glide.with(fragment).load(url).into(imageView);
+        if (Globals.ImageMethods.isValidUri(url))
+            Glide.with(fragment).load(url).apply(RequestOptions.circleCropTransform()).into(imageView);
+        else
+            Glide.with(fragment).load("").apply(new RequestOptions().placeholder(Globals.ImageMethods.getRoundImage(fragment.getActivity(), url))).into(imageView);
     }
 
     public void loadToolbarImage(ImageView imageView, String url) {

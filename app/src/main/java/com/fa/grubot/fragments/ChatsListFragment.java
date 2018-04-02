@@ -19,7 +19,7 @@ import com.fa.grubot.abstractions.ChatsListFragmentBase;
 import com.fa.grubot.adapters.ChatsListRecyclerAdapter;
 import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.presenters.ChatsListPresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -121,13 +121,13 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_DATA:
+            case Consts.STATE_NO_DATA:
                 noData.setVisibility(View.VISIBLE);
                 break;
         }
@@ -136,14 +136,14 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
     public void setupLayouts(boolean isNetworkAvailable, boolean isHasData) {
         if (isNetworkAvailable) {
             if (isHasData)
-                state = FragmentState.STATE_CONTENT;
+                state = Consts.STATE_CONTENT;
             else {
-                state = FragmentState.STATE_NO_DATA;
+                state = Consts.STATE_NO_DATA;
                 chatsListAdapter = null;
             }
         }
         else {
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
             chatsListAdapter = null;
         }
     }

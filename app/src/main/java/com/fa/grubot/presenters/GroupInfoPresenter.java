@@ -10,7 +10,7 @@ import com.fa.grubot.objects.dashboard.ActionVote;
 import com.fa.grubot.objects.misc.GroupInfoButton;
 import com.fa.grubot.objects.misc.VoteOption;
 import com.fa.grubot.objects.users.User;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -64,12 +64,12 @@ public class GroupInfoPresenter {
         fragment.showRequiredViews();
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 fragment.setupToolbar();
                 fragment.setupFab();
                 fragment.setupRecyclerView(buttons);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
         }
@@ -86,7 +86,7 @@ public class GroupInfoPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleUIUpdate(null);
@@ -95,7 +95,7 @@ public class GroupInfoPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -118,7 +118,7 @@ public class GroupInfoPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleActionsUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), announcement);
@@ -127,7 +127,7 @@ public class GroupInfoPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -154,7 +154,7 @@ public class GroupInfoPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleActionsUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), vote);
@@ -163,7 +163,7 @@ public class GroupInfoPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -181,7 +181,7 @@ public class GroupInfoPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleUsersUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), user);
@@ -190,7 +190,7 @@ public class GroupInfoPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });

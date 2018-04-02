@@ -18,7 +18,7 @@ import com.fa.grubot.R;
 import com.fa.grubot.callbacks.ChatsListDiffCallback;
 import com.fa.grubot.fragments.BaseFragment;
 import com.fa.grubot.objects.chat.Chat;
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.Globals;
 
 import org.jetbrains.annotations.NotNull;
@@ -82,14 +82,14 @@ public class ChatsListRecyclerAdapter extends RecyclerView.Adapter<ChatsListRecy
         holder.lastMessageDate.setText(chat.getLastMessageDateAsString());
 
         String imgUri = chat.getImgURI();
-        if (imgUri == null)
-            holder.chatImage.setImageDrawable(Globals.ImageMethods.getRoundImage(context, chat.getName()));
-        else
+        if (Globals.ImageMethods.isValidUri(imgUri))
             Glide.with(context).load(imgUri).apply(RequestOptions.circleCropTransform()).into(holder.chatImage);
+        else
+            Glide.with(context).load("").apply(new RequestOptions().placeholder(Globals.ImageMethods.getRoundImage(context, imgUri))).into(holder.chatImage);
 
-        if (chat.getType().equals(DataType.Telegram)) {
+        if (chat.getType().equals(Consts.Telegram)) {
             Glide.with(context).load(R.drawable.ic_telegram).into(holder.chatTypeImage);
-        } else if (chat.getType().equals(DataType.VK)){
+        } else if (chat.getType().equals(Consts.VK)){
             Glide.with(context).load(R.drawable.ic_vk).into(holder.chatTypeImage);
         }
 

@@ -8,7 +8,7 @@ import com.fa.grubot.models.DashboardModel;
 import com.fa.grubot.objects.dashboard.DashboardAnnouncement;
 import com.fa.grubot.objects.dashboard.DashboardItem;
 import com.fa.grubot.objects.dashboard.DashboardVote;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -80,14 +80,14 @@ public class DashboardPresenter {
         fragment.showRequiredViews();
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 ArrayList<DashboardItem> items = new ArrayList<>(Arrays.asList(
                         new DashboardAnnouncement(0, 0),
                         new DashboardVote(0, 0)));
 
                 fragment.setupRecyclerView(items);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
         }
@@ -99,7 +99,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists())  {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -117,7 +117,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_ANNOUNCEMENTS);
@@ -126,7 +126,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -135,7 +135,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists())  {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -153,7 +153,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE);
@@ -162,7 +162,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -171,7 +171,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists())  {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -189,7 +189,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES);
@@ -198,7 +198,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -207,7 +207,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists())  {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -225,7 +225,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES_ARCHIVE);
@@ -234,7 +234,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -245,7 +245,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists()) {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -263,7 +263,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_ANNOUNCEMENTS);
@@ -272,7 +272,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -281,7 +281,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists()) {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -299,7 +299,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE);
@@ -308,7 +308,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -317,7 +317,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists()) {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -335,7 +335,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES);
@@ -344,7 +344,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });
@@ -353,7 +353,7 @@ public class DashboardPresenter {
             if (e == null) {
                 if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists()) {
                     fragment.setupLayouts(true);
-                    notifyViewCreated(FragmentState.STATE_CONTENT);
+                    notifyViewCreated(Consts.STATE_CONTENT);
                 }
 
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
@@ -371,7 +371,7 @@ public class DashboardPresenter {
                     if (fragment != null) {
                         if (!fragment.isAdapterExists()) {
                             fragment.setupLayouts(true);
-                            notifyViewCreated(FragmentState.STATE_CONTENT);
+                            notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
                         fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES_ARCHIVE);
@@ -380,7 +380,7 @@ public class DashboardPresenter {
             } else {
                 if (fragment != null) {
                     fragment.setupLayouts(false);
-                    notifyViewCreated(FragmentState.STATE_NO_INTERNET_CONNECTION);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
                 }
             }
         });

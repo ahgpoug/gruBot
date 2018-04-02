@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +20,7 @@ import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.chat.ChatMessage;
 import com.fa.grubot.objects.chat.MessagesListParcelable;
 import com.fa.grubot.presenters.ChatPresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.ImageLoader;
 import com.stfalcon.chatkit.messages.MessageHolders;
 import com.stfalcon.chatkit.messages.MessageInput;
@@ -90,6 +91,7 @@ public class ChatFragment extends Fragment implements ChatFragmentBase, Serializ
 
     @Override
     public void onStop() {
+        Log.d("tag", "onStop called");
         App.INSTANCE.closeTelegramClient();
         super.onStop();
     }
@@ -117,7 +119,7 @@ public class ChatFragment extends Fragment implements ChatFragmentBase, Serializ
 
     @Override
     public void onLoadMore(int page, int totalItemsCount) {
-
+        presenter.loadMoreMessages(totalItemsCount);
     }
 
     @Override
@@ -128,13 +130,13 @@ public class ChatFragment extends Fragment implements ChatFragmentBase, Serializ
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_DATA:
+            case Consts.STATE_NO_DATA:
                 content.setVisibility(View.VISIBLE);
                 break;
         }
@@ -144,25 +146,20 @@ public class ChatFragment extends Fragment implements ChatFragmentBase, Serializ
     public void setupLayouts(boolean isNetworkAvailable, boolean isHasData) {
         if (isNetworkAvailable) {
             if (isHasData)
-                state = FragmentState.STATE_CONTENT;
+                state = Consts.STATE_CONTENT;
             else {
-                state = FragmentState.STATE_NO_DATA;
+                state = Consts.STATE_NO_DATA;
                 messagesListAdapter = null;
             }
         }
         else {
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
             messagesListAdapter = null;
         }
     }
 
-    public void updateMessagesList(ArrayList<ChatMessage> messages, boolean moveToTop) {
-        /*if (isAdapterExists()) {
-            messagesListAdapter.updateMessagesList(messages);
-
-            if (moveToTop)
-                messagesList.scrollToPosition(0);
-        }*/
+    public void addNewMessagesToList(ArrayList<ChatMessage> messages, boolean moveToTop) {
+        messagesListAdapter.addToEnd(messages, true);
     }
 
     @Override
@@ -182,6 +179,7 @@ public class ChatFragment extends Fragment implements ChatFragmentBase, Serializ
 
         messagesListAdapter = new MessagesListAdapter<>(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), holdersConfig, imageLoader);
         messagesListAdapter.addToEnd(messages, false);
+        messagesListAdapter.setLoadMoreListener(this);
         messagesList.setAdapter(messagesListAdapter);
         messageInput.setInputListener(this);
     }

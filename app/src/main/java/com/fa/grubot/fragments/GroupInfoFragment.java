@@ -28,7 +28,7 @@ import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.misc.VoteOption;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.presenters.GroupInfoPresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.ImageLoader;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -141,12 +141,12 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 appBarLayout.setExpanded(true);
                 content.setVisibility(View.VISIBLE);
                 content_fam.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 appBarLayout.setExpanded(false);
                 noInternet.setVisibility(View.VISIBLE);
                 break;
@@ -155,10 +155,10 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
 
     public void setupLayouts(boolean isNetworkAvailable) {
         if (isNetworkAvailable)
-            state = FragmentState.STATE_CONTENT;
+            state = Consts.STATE_CONTENT;
         else {
             groupInfoAdapter = null;
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
         }
     }
 

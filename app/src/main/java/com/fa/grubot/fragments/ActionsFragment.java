@@ -23,7 +23,7 @@ import com.fa.grubot.adapters.ActionsRecyclerAdapter;
 import com.fa.grubot.helpers.RecyclerItemTouchHelper;
 import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.presenters.ActionsPresenter;
-import com.fa.grubot.util.FragmentState;
+import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 
 import java.io.Serializable;
@@ -114,13 +114,13 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
         content.setVisibility(View.GONE);
 
         switch (state) {
-            case FragmentState.STATE_CONTENT:
+            case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_INTERNET_CONNECTION:
+            case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
                 break;
-            case FragmentState.STATE_NO_DATA:
+            case Consts.STATE_NO_DATA:
                 noData.setVisibility(View.VISIBLE);
                 break;
         }
@@ -129,14 +129,14 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
     public void setupLayouts(boolean isNetworkAvailable, boolean isHasData){
         if (isNetworkAvailable) {
             if (isHasData)
-                state = FragmentState.STATE_CONTENT;
+                state = Consts.STATE_CONTENT;
             else {
-                state = FragmentState.STATE_NO_DATA;
+                state = Consts.STATE_NO_DATA;
                 actionsAdapter = null;
             }
         }
         else {
-            state = FragmentState.STATE_NO_INTERNET_CONNECTION;
+            state = Consts.STATE_NO_INTERNET_CONNECTION;
             actionsAdapter = null;
         }
     }

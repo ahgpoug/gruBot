@@ -6,7 +6,7 @@ import android.util.SparseArray;
 
 import com.fa.grubot.objects.misc.TelegramPhoto;
 import com.fa.grubot.objects.users.User;
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.api.utils.InputFileLocation;
 import com.github.badoualy.telegram.api.utils.TLMediaUtilsKt;
@@ -326,7 +326,6 @@ public class TelegramHelper {
                     photoId = absPhoto.getAsChatPhoto().getPhotoBig().getLocalId();
                 }
 
-
                 TelegramPhoto telegramPhoto = new TelegramPhoto(inputFileLocation, photoId);
                 photoMap.put(chat.getId(), telegramPhoto);
             });
@@ -354,8 +353,37 @@ public class TelegramHelper {
 
                 TelegramPhoto telegramPhoto = new TelegramPhoto(inputFileLocation, photoId);
                 String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
+                if (imgUri == null)
+                    imgUri = fullname;
 
-                User user = new User(String.valueOf(userId), DataType.Telegram, fullname, userName, imgUri);
+                User user = new User(String.valueOf(userId), Consts.Telegram, fullname, userName, imgUri);
+                users.put(userId, user);
+            }
+
+            for (TLAbsChat absChat : messages.getChats()) {
+                int userId = absChat.getId();
+                String fullname = TelegramHelper.Chats.extractChatTitle(absChat);
+
+                TLAbsChatPhoto absPhoto = Chats.extractChatPhoto(absChat);
+                TLChatPhoto chatPhoto = null;
+
+                if (absPhoto != null)
+                    chatPhoto = absPhoto.getAsChatPhoto();
+
+                InputFileLocation inputFileLocation = null;
+                long photoId = 0;
+
+                if (chatPhoto != null) {
+                    inputFileLocation = TLMediaUtilsKt.toInputFileLocation(chatPhoto.getPhotoBig());
+                    photoId = absPhoto.getAsChatPhoto().getPhotoBig().getLocalId();
+                }
+
+                TelegramPhoto telegramPhoto = new TelegramPhoto(inputFileLocation, photoId);
+                String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
+                if (imgUri == null)
+                    imgUri = fullname;
+
+                User user = new User(String.valueOf(userId), Consts.Telegram, fullname, fullname, imgUri);
                 users.put(userId, user);
             }
             return users;
@@ -378,8 +406,10 @@ public class TelegramHelper {
 
             TelegramPhoto telegramPhoto = new TelegramPhoto(inputFileLocation, photoId);
             String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
+            if (imgUri == null)
+                imgUri = fullname;
 
-            return new User(String.valueOf(userId), DataType.Telegram, fullname, userName, imgUri);
+            return new User(String.valueOf(userId), Consts.Telegram, fullname, userName, imgUri);
         }
 
         public static User getChatAsUser(TelegramClient client, int chatId, Context context) {
@@ -408,8 +438,11 @@ public class TelegramHelper {
             userName = fullname;
 
             imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
+            if (imgUri == null)
+                imgUri = fullname;
+
             User user = new User(String.valueOf(chatId),
-                    DataType.Telegram,
+                    Consts.Telegram,
                     fullname,
                     userName,
                     imgUri);

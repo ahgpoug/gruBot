@@ -20,7 +20,7 @@ import com.fa.grubot.R;
 import com.fa.grubot.SplashActivity;
 import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.objects.users.VkUser;
-import com.fa.grubot.util.DataType;
+import com.fa.grubot.util.Consts;
 import com.github.badoualy.telegram.tl.api.TLUser;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
@@ -163,7 +163,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Serial
                 return false;
             } else {
                 Intent intent = new Intent(getActivity(), LoginActivity.class);
-                intent.putExtra("directLogin", DataType.Telegram);
+                intent.putExtra("directLogin", Consts.Telegram);
                 getActivity().startActivity(intent);
                 return false;
             }
