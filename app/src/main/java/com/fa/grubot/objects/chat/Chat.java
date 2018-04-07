@@ -1,5 +1,6 @@
 package com.fa.grubot.objects.chat;
 
+import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.fa.grubot.util.Consts;
@@ -7,10 +8,11 @@ import com.github.badoualy.telegram.tl.api.TLAbsInputPeer;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
-public class Chat implements Serializable, Cloneable {
+public class Chat implements Serializable, Cloneable, Comparable<Chat> {
     private String id;
     private String name;
     private Map<String, Boolean> users;
@@ -125,5 +127,23 @@ public class Chat implements Serializable, Cloneable {
             dateFormat = new SimpleDateFormat("dd MMM", Locale.getDefault());
 
         return dateFormat.format(date);
+    }
+
+    @Override
+    public int compareTo(@NonNull Chat chat) {
+        Long dateThisMillis = this.lastMessageDate * (this.type.equals(Consts.VK) ? 1000 : 1);
+        Long dateThatMillis = chat.getLastMessageDate() * (chat.getType().equals(Consts.VK) ? 1000 : 1);
+
+        Date dateThis = new Date(dateThisMillis);
+        Date dateThat = new Date(dateThatMillis);
+
+        if (dateThis.after(dateThat)) {
+            return -1;
+        } else if (dateThis.before(dateThat)) {
+            return 1;
+        } else {
+            return 0;
+        }
+
     }
 }

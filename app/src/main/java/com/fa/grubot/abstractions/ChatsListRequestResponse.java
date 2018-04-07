@@ -6,4 +6,5 @@ import java.util.ArrayList;
 
 public interface ChatsListRequestResponse {
     void onChatsListResult(ArrayList<Chat> chats, boolean moveToTop);
+    void onFloodException();
 }

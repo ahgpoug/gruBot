@@ -14,6 +14,9 @@ public class VkUserResponse {
     @SerializedName("last_name")
     @Expose
     private String lastName;
+    @SerializedName("domain")
+    @Expose
+    private String domain;
 
     /**
      * No args constructor for use in serialization
@@ -27,12 +30,14 @@ public class VkUserResponse {
      * @param id
      * @param lastName
      * @param firstName
+     * @param domain
      */
-    public VkUserResponse(Integer id, String firstName, String lastName) {
+    public VkUserResponse(Integer id, String firstName, String lastName, String domain) {
         super();
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.domain = domain;
     }
 
     public Integer getId() {
@@ -59,4 +64,11 @@ public class VkUserResponse {
         this.lastName = lastName;
     }
 
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
 }

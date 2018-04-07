@@ -1,109 +1,48 @@
 package com.fa.grubot.presenters;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.util.Log;
 
-import com.fa.grubot.abstractions.ProfileFragmentBase;
+import com.fa.grubot.abstractions.ProfileItemFragmentBase;
 import com.fa.grubot.models.ProfileModel;
-import com.fa.grubot.objects.misc.ProfileItem;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.util.Consts;
-import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
 
-import java.util.ArrayList;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class ProfilePresenter {
-    private ProfileFragmentBase fragment;
+    private ProfileItemFragmentBase fragment;
     private ProfileModel model;
 
-    private ArrayList<ProfileItem> items = new ArrayList<>();
-    private User localUser;
+    private Context context;
 
-    private Query userQuery;
-    private ListenerRegistration userRegistration;
-
-    public ProfilePresenter(ProfileFragmentBase fragment) {
+    public ProfilePresenter(ProfileItemFragmentBase fragment, Context context) {
         this.fragment = fragment;
-        this.model = new ProfileModel();
+        this.context = context;
+        model = new ProfileModel();
     }
 
-    public void notifyFragmentStarted(String userId) {
-        userQuery = FirebaseFirestore.getInstance().collection("users").whereEqualTo("userId", userId);
-        setRegistration();
+    @SuppressLint("CheckResult")
+    public void requestVkUser(final int userId) {
+        Observable.just(true).map(x -> {
+            Log.d("PROFILE", "profile asks for model");
+            return model.askForVkUserInfo(userId);
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(vkUserObs -> {
+                    vkUserObs.subscribe(vkUser -> fragment.showUser(new User(String.valueOf(vkUser.getId()), Consts.VK, vkUser.getFirstName() + " " + vkUser.getLastName(), vkUser.getDomain(), vkUser.getPhoto100())));
+                });
     }
 
-    private void notifyViewCreated(int state) {
-        fragment.showRequiredViews();
-
-        switch (state) {
-            case Consts.STATE_CONTENT:
-                fragment.setupToolbar(localUser);
-                fragment.setupRecyclerView(items, localUser);
-                break;
-            case Consts.STATE_NO_INTERNET_CONNECTION:
-                fragment.setupRetryButton();
-                break;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public void setRegistration() {
-        userRegistration = userQuery.addSnapshotListener((documentSnapshots, e) -> {
-            if (e == null) {
-                for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
-                    DocumentSnapshot doc = dc.getDocument();
-                    User user = new User(doc.get("userId").toString(),
-                            doc.get("username").toString(),
-                            doc.get("fullname").toString(),
-                            doc.get("desc").toString(),
-                            doc.get("imgUrl").toString());
-
-                    ArrayList<String> changes = new ArrayList<>();
-                    if (localUser != null) {
-                        if (!user.getUserName().equals(localUser.getUserName()))
-                            changes.add("username");
-                        if (!user.getFullname().equals(localUser.getFullname()))
-                            changes.add("fullname");
-                        if (!user.getPhoneNumber().equals(localUser.getPhoneNumber()))
-                            changes.add("phoneNumber");
-                        if (!user.getImgUrl().equals(localUser.getImgUrl()))
-                            changes.add("avatar");
-                    }
-
-                    localUser = user;
-
-                    if (fragment != null) {
-                        if (!fragment.isAdapterExists()) {
-                            fragment.setupLayouts(true);
-                            notifyViewCreated(Consts.STATE_CONTENT);
-                        }
-
-                        fragment.handleProfileUpdate(user, changes);
-                    }
-                }
-            } else {
-                if (fragment != null) {
-                    fragment.setupLayouts(false);
-                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
-                }
-            }
-        });
-    }
-
-    public void removeRegistration() {
-        if (userRegistration != null)
-            userRegistration.remove();
-    }
-
-    public void onRetryBtnClick() {
-        setRegistration();
-    }
-
-    public void destroy() {
-        removeRegistration();
-        fragment = null;
-        model = null;
+    public void requestTelegramUser(final int userId) {
+        Observable.defer(() -> Observable.just(model.askForTelegramUserInfo(userId, context)))
+                .filter(user -> user != null)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(user -> fragment.showUser(user))
+                .subscribe();
     }
 }

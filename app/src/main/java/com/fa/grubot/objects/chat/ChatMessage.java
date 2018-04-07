@@ -2,10 +2,11 @@ package com.fa.grubot.objects.chat;
 
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
+import com.stfalcon.chatkit.commons.models.MessageContentType;
 
 import java.util.Date;
 
-public class ChatMessage implements IMessage {
+public class ChatMessage implements IMessage, MessageContentType {
 
     private String id;
     private String text;

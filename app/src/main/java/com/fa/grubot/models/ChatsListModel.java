@@ -1,12 +1,11 @@
 package com.fa.grubot.models;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.SparseArray;
 
 import com.fa.grubot.App;
-import com.fa.grubot.abstractions.ChatsListRequestResponse;
 import com.fa.grubot.helpers.TelegramHelper;
 import com.fa.grubot.helpers.VkDialogParser;
 import com.fa.grubot.objects.chat.Chat;
@@ -37,79 +36,24 @@ import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class ChatsListModel {
 
-    public ChatsListModel() {
-
-    }
-
-    public void sendChatsListRequest(Context context, ChatsListPresenter presenter) {
-        GetChatsList request = new GetChatsList(context);
-        request.response = presenter;
-        request.execute();
-    }
-
-    public void sendVkChatListRequest(ChatsListPresenter presenter) {
-        Log.d("VK DIALOGS", "trying to get list of dialogs... ");
-        VKRequest request = VKApi.messages()
-                .getDialogs(VKParameters.from(VKApiConst.COUNT, 20));
-        request.executeWithListener(new VKRequest.VKRequestListener() {
-            @Override
-            public void onComplete(VKResponse response) {
-                Log.d("VK DIALOGS", "dialogs successfully received");
-                VkDialogParser parser = new VkDialogParser(response);
-                List<Chat> dialogs = new ArrayList<>();
-                parser.getDialogsSubscription()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                        chat -> {
-                            dialogs.add(chat);
-                        },
-                        error -> error.printStackTrace(),
-                        () -> presenter.onChatsListResult(new ArrayList<>(dialogs), true)
-                );
-            }
-
-            @Override
-            public void onError(VKError error) {
-                Log.d("VK DIALOGS", "dialogs not received with error: " + error.toString());
-
-            }
-        });
-    }
-
-
-    public static class GetChatsList extends AsyncTask<Void, Void, Object> {
-        private WeakReference<Context> context;
-        private ChatsListRequestResponse response = null;
-
-        private GetChatsList(Context context) {
-            this.context = new WeakReference<>(context);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Object doInBackground(Void... params) {
+    public Observable<List<Chat>> sendChatsListRequest(Context context, ChatsListPresenter presenter) {
+        return Observable.create(observableTMessages -> {
             ArrayList<Chat> chatsList = new ArrayList<>();
             TelegramClient client = App.INSTANCE.getNewTelegramClient(null).getDownloaderClient();
 
             CurrentUser currentUser = App.INSTANCE.getCurrentUser();
             if (currentUser.getTelegramChatUser() == null)
-                currentUser.setTelegramChatUser(TelegramHelper.Chats.getChatUser(client, currentUser.getTelegramUser().getId(), context.get()));
+                currentUser.setTelegramChatUser(TelegramHelper.Chats.getChatUser(client, currentUser.getTelegramUser().getId(), context));
 
-            try {
                 TLAbsDialogs tlAbsDialogs = client.messagesGetDialogs(false, 0, 0, new TLInputPeerEmpty(), 10000); //have no idea how to avoid the limit without a huge number
 
                 SparseArray<String> namesMap = TelegramHelper.Chats.getChatNamesMap(tlAbsDialogs);
@@ -167,7 +111,7 @@ public class ChatsListModel {
                     }
 
                     TelegramPhoto telegramPhoto = photoMap.get(chatId);
-                    String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context.get());
+                    String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
                     if (imgUri == null)
                         imgUri = chatName;
 
@@ -175,21 +119,46 @@ public class ChatsListModel {
                     chat.setInputPeer(inputPeer);
                     chatsList.add(chat);
                 });
-                return chatsList;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return e;
-            } finally {
                 client.close(false);
-            }
-        }
+                observableTMessages.onNext(chatsList);
+        });
 
-        @SuppressWarnings("unchecked")
-        @Override
-        protected void onPostExecute(Object result) {
-            if (response != null && result instanceof ArrayList<?>)
-                response.onChatsListResult((ArrayList<Chat>) result, true);
-        }
+    }
+
+
+    public Observable<List<Chat>> sendVkChatListRequest(ChatsListPresenter presenter) {
+        return Observable.create(observableVkMessages -> {
+            Log.d("VK DIALOGS", "trying to get list of dialogs... ");
+            VKRequest request = VKApi.messages()
+                    .getDialogs(VKParameters.from(VKApiConst.COUNT, 20));
+            request.executeWithListener(new VKRequest.VKRequestListener() {
+                @SuppressLint("CheckResult")
+                @Override
+                public void onComplete(VKResponse response) {
+                    Log.d("VK DIALOGS", "dialogs successfully received");
+                    VkDialogParser parser = new VkDialogParser(response);
+                    List<Chat> dialogs = new ArrayList<>();
+                    parser.getDialogsSubscription()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    dialogs::add,
+                                    error -> {
+                                        error.printStackTrace();
+                                        observableVkMessages.onError(error);
+                                    },
+                                    () -> observableVkMessages.onNext(dialogs)
+
+                            );
+                }
+
+                @Override
+                public void onError(VKError error) {
+                    Log.d("VK DIALOGS", "dialogs not received with error: " + error.toString());
+                    observableVkMessages.onError(error.httpError);
+                }
+            });
+        });
     }
 
     public ArrayList<Chat> onNewMessage(ArrayList<Chat> chats, TelegramMessageEvent event) {

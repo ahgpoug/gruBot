@@ -42,18 +42,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        App.INSTANCE.closeTelegramClient();
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onStop() {
-        App.INSTANCE.closeTelegramClient();
-        super.onStop();
-    }
-
-    @Override
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);

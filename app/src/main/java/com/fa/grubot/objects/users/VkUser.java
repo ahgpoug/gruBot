@@ -24,6 +24,7 @@ public class VkUser {
 
     private String accessToken;
 
+    private String domain;
 
     public VkUser(String access_token) {
         accessToken = access_token;
@@ -41,6 +42,7 @@ public class VkUser {
                     setFirstName(res.getFirstName());
                     setLastName(res.getLastName());
                     setId(res.getId());
+                    setDomain(res.getDomain());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -76,11 +78,18 @@ public class VkUser {
         return this;
     }
 
+    public VkUser setDomain(String domain) {
+        this.domain = domain;
+        return this;
+    }
+
+
     @Override
     public String toString() {
         return "VkUser{" +
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", domain=" + domain + '\'' +
                 ", id=" + id +
                 ", accessToken='" + accessToken + '\'' +
                 '}';

@@ -15,11 +15,17 @@ import com.fa.grubot.objects.events.telegram.TelegramMessageEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserNameEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
 import com.fa.grubot.util.Consts;
+import com.fa.grubot.util.Globals;
 import com.github.badoualy.telegram.api.TelegramClient;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+
+import static com.fa.grubot.util.Consts.STATE_NO_INTERNET_CONNECTION;
 
 public class ChatsListPresenter implements ChatsListRequestResponse {
 
@@ -33,19 +39,53 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
 
     private ArrayList<Chat> chats = new ArrayList<>();
 
+    private Observable<List<Chat>> vkListObservable;
+
+    private Observable<List<Chat>> tListObservable;
+
+    private boolean callbackInited = false;
+
     public ChatsListPresenter(ChatsListFragmentBase fragment, Context context) {
         this.fragment = fragment;
         this.model = new ChatsListModel();
         this.context = context;
     }
 
-    public void notifyFragmentStarted() throws JSONException {
+    public void notifyFragmentStarted() {
         fragment.setupToolbar();
-        if (App.INSTANCE.getCurrentUser().hasTelegramUser())
-            model.sendChatsListRequest(context, presenter);
 
-        if (App.INSTANCE.getCurrentUser().hasVkUser())
-            model.sendVkChatListRequest(this);
+        if (Globals.InternetMethods.isNetworkAvailable(context)) {
+            if (App.INSTANCE.getCurrentUser().hasTelegramUser())
+                model.sendChatsListRequest(context, presenter);
+
+            if (App.INSTANCE.getCurrentUser().hasVkUser())
+                model.sendVkChatListRequest(this);
+        } else {
+            notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
+        }
+
+        if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
+            tListObservable = model.sendChatsListRequest(context, presenter);
+        } else {
+            tListObservable = Observable.just(new ArrayList<>());
+        }
+
+        if (App.INSTANCE.getCurrentUser().hasVkUser()) {
+            vkListObservable = model.sendVkChatListRequest(this);
+        } else {
+            vkListObservable = Observable.just(new ArrayList<>());
+        }
+
+        Observable.combineLatest(vkListObservable, tListObservable, (v, t) -> {
+            List<Chat> megaChat = new ArrayList<>();
+            if (v != null) megaChat.addAll(v);
+            if (t != null) megaChat.addAll(t);
+            Collections.sort(megaChat);
+            return megaChat;
+        })
+                .subscribeOn(io.reactivex.schedulers.Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(combinedChat -> onChatsListResult(new ArrayList<>(combinedChat), false));
     }
 
     private void notifyViewCreated(int state) {
@@ -55,7 +95,7 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
             case Consts.STATE_CONTENT:
                 fragment.setupRecyclerView(chats);
                 break;
-            case Consts.STATE_NO_INTERNET_CONNECTION:
+            case STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
             case Consts.STATE_NO_DATA:
@@ -85,32 +125,60 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
     }
 
     public void setUpdateCallback() {
-        AsyncTask.execute(() -> {
-            telegramEventListener = new TelegramEventCallback.TelegramEventListener() {
-                @Override
-                public void onMessage(TelegramMessageEvent telegramMessageEvent) {
-                    ((AppCompatActivity) context).runOnUiThread(() -> onChatsListResult(model.onNewMessage(chats, telegramMessageEvent), true));
+        if (!callbackInited) {
+            callbackInited = true;
+            AsyncTask.execute(() -> {
+                try {
+                    Thread.sleep(3000); //todo dirty little hack
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
 
-                @Override
-                public void onUserNameUpdate(TelegramUpdateUserNameEvent telegramUpdateUserNameEvent) {
-                    ((AppCompatActivity) context).runOnUiThread(() -> onChatsListResult(model.onUserNameUpdate(chats, telegramUpdateUserNameEvent), false));
-                }
+                if (Globals.InternetMethods.isNetworkAvailable(context))
+                    client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+                else
+                    notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
 
-                @Override
-                public void onUserPhotoUpdate(TelegramUpdateUserPhotoEvent telegramUpdateUserPhotoEvent) {
-                    ((AppCompatActivity) context).runOnUiThread(() -> onChatsListResult(model.onUserPhotoUpdate(chats, telegramUpdateUserPhotoEvent), false));
-                }
-            };
-            client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
-        });
+                telegramEventListener = new TelegramEventCallback.TelegramEventListener() {
+                    @Override
+                    public void onMessage(TelegramMessageEvent telegramMessageEvent) {
+                        ((AppCompatActivity) context).runOnUiThread(()
+                                -> onChatsListResult(model.onNewMessage(chats, telegramMessageEvent),
+                                true));
+                    }
+
+                    @Override
+                    public void onUserNameUpdate(TelegramUpdateUserNameEvent telegramUpdateUserNameEvent) {
+                        ((AppCompatActivity) context).runOnUiThread(()
+                                -> onChatsListResult(model.onUserNameUpdate(chats, telegramUpdateUserNameEvent),
+                                false));
+                    }
+
+                    @Override
+                    public void onUserPhotoUpdate(TelegramUpdateUserPhotoEvent telegramUpdateUserPhotoEvent) {
+                        ((AppCompatActivity) context).runOnUiThread(()
+                                -> onChatsListResult(model.onUserPhotoUpdate(chats, telegramUpdateUserPhotoEvent),
+                                false));
+                    }
+                };
+            });
+        }
+    }
+
+    @Override
+    public void onFloodException() {
+        if (Globals.InternetMethods.isNetworkAvailable(context))
+            model.sendChatsListRequest(context, presenter);
     }
 
     public void onRetryBtnClick() {
-        model.sendChatsListRequest(context, presenter);
+        if (Globals.InternetMethods.isNetworkAvailable(context))
+            model.sendChatsListRequest(context, presenter);
     }
 
     public void destroy() {
+        if (client != null && !client.isClosed())
+            client.close(false);
         fragment = null;
         model = null;
     }

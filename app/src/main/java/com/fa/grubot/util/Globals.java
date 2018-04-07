@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
+import com.github.badoualy.telegram.tl.exception.RpcErrorException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +18,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class Globals {
+
+    public static int extractMillisFromRpcException(RpcErrorException e) {
+        String tag = e.getTag();
+        return Integer.valueOf(tag.substring(tag.lastIndexOf('_') + 1));
+    }
 
     public static class ImageMethods {
         /**
@@ -29,7 +35,7 @@ public class Globals {
             ColorGenerator generator = ColorGenerator.MATERIAL;
             int color = generator.getColor(name);
 
-            TextDrawable drawable = TextDrawable.builder()
+            return TextDrawable.builder()
                     .beginConfig()
                     .useFont(Typeface.createFromAsset(context.getAssets(), "OpenSans-Light.ttf"))
                     .bold()
@@ -38,7 +44,6 @@ public class Globals {
                     .height(100)
                     .endConfig()
                     .buildRound(String.valueOf(name.charAt(0)).toUpperCase(), color);
-            return drawable;
         }
 
         public static boolean isValidUri(String uri) {
@@ -47,7 +52,7 @@ public class Globals {
     }
 
     public static class InternetMethods {
-        private static boolean isNetworkAvailable(Context context) {
+        public static boolean isNetworkAvailable(Context context) {
             Runtime runtime = Runtime.getRuntime();
             int exitValue = -1;
 

@@ -5,12 +5,12 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.fa.grubot.objects.users.CurrentUser;
+import com.fa.grubot.util.CustomExceptionHandler;
 import com.fa.grubot.util.TmApiStorage;
 import com.github.badoualy.telegram.api.Kotlogram;
 import com.github.badoualy.telegram.api.TelegramApp;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.api.UpdateCallback;
-import com.github.badoualy.telegram.mtproto.model.DataCenter;
 import com.r0adkll.slidr.model.SlidrConfig;
 import com.r0adkll.slidr.model.SlidrPosition;
 import com.vk.sdk.VKAccessToken;
@@ -64,6 +64,8 @@ public class App extends Application {
         nearestDcFile = new File(this.getApplicationContext().getFilesDir(), "dc.save");
         vkAccessTokenFile = new File(this.getApplicationContext().getFilesDir(), "vk.token");
 
+        Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler());
+
         application = new TelegramApp(API_ID, API_HASH, MODEL, SYSTEM_VERSION, APP_VERSION, LANG_CODE);
         INSTANCE = this;
 
@@ -72,14 +74,13 @@ public class App extends Application {
     }
 
     public TelegramClient getNewTelegramClient(UpdateCallback callback) {
-        if (telegramClient != null && !telegramClient.isClosed())
-            closeTelegramClient();
+        closeTelegramClient();
 
         TmApiStorage apiStorage = new TmApiStorage(authKeyFile, nearestDcFile);
         if (callback != null)
-            telegramClient = Kotlogram.getDefaultClient(application, apiStorage, new DataCenter("149.154.167.50", 443), callback);
+            telegramClient = Kotlogram.getDefaultClient(application, apiStorage, apiStorage.loadDc(), callback);
         else
-            telegramClient = Kotlogram.getDefaultClient(application, apiStorage, new DataCenter("149.154.167.50", 443));
+            telegramClient = Kotlogram.getDefaultClient(application, apiStorage, apiStorage.loadDc());
         return telegramClient;
     }
 
@@ -91,8 +92,9 @@ public class App extends Application {
     }
 
     public void closeTelegramClient() {
-        if (telegramClient != null)
+        if (telegramClient != null) {
             telegramClient.close(false);
+        }
     }
 
     public String getVkTokenFilePath(){

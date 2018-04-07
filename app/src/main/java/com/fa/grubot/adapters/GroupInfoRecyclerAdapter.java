@@ -13,7 +13,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.fa.grubot.ChatActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.fragments.BaseFragment;
-import com.fa.grubot.fragments.ProfileFragment;
 import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.dashboard.ActionAnnouncement;
 import com.fa.grubot.objects.dashboard.ActionVote;
@@ -160,7 +159,7 @@ public class GroupInfoRecyclerAdapter extends ExpandableRecyclerAdapter<GroupInf
             userImage.setImageDrawable(Globals.ImageMethods.getRoundImage(context, user.getFullname()));
 
             userImage.getRootView().setOnClickListener(view -> {
-                fragmentNavigation.pushFragment(ProfileFragment.newInstance(instance + 1, null, user.getUserId()));
+                //fragmentNavigation.pushFragment(ProfileFragment.newInstance(instance + 1, null, user.getUserId()));
             });
         }
     }

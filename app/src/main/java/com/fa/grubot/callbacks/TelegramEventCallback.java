@@ -107,7 +107,8 @@ public class TelegramEventCallback implements UpdateCallback {
                 ((long) shortChatMessage.getDate()) * 1000,
                 fromName);
 
-        listener.onMessage(event);
+        if (listener != null)
+            listener.onMessage(event);
     }
 
     @Override
@@ -130,7 +131,8 @@ public class TelegramEventCallback implements UpdateCallback {
                 ((long) shortMessage.getDate()) * 1000,
                 fromName);
 
-        listener.onMessage(event);
+        if (listener != null)
+            listener.onMessage(event);
     }
 
     @Override
@@ -182,7 +184,8 @@ public class TelegramEventCallback implements UpdateCallback {
                     messageText = tlMessage.getMessage();
 
                 TelegramMessageEvent event = new TelegramMessageEvent(tlMessage.getId(), messageText, tlMessage.getFromId(), messageToId, ((long) tlMessage.getDate()) * 1000, fromName);
-                listener.onMessage(event);
+                if (listener != null)
+                    listener.onMessage(event);
             }
         } else if (update instanceof TLUpdateNewChannelMessage) {
             TLAbsMessage message = ((TLUpdateNewChannelMessage) update).getMessage();
@@ -226,7 +229,9 @@ public class TelegramEventCallback implements UpdateCallback {
                     messageText = tlMessage.getMessage();
 
                 TelegramMessageEvent event = new TelegramMessageEvent(tlMessage.getId(), messageText, tlMessage.getFromId(), messageToId,((long) tlMessage.getDate()) * 1000, fromName);
-                listener.onMessage(event);
+
+                if (listener != null)
+                    listener.onMessage(event);
             }
         } else if (update instanceof TLUpdateUserName) {
             TLUpdateUserName updateUserName = (TLUpdateUserName) update;
@@ -234,7 +239,9 @@ public class TelegramEventCallback implements UpdateCallback {
                     updateUserName.getFirstName(),
                     updateUserName.getLastName(),
                     updateUserName.getUsername());
-            listener.onUserNameUpdate(event);
+
+            if (listener != null)
+                listener.onUserNameUpdate(event);
         } else if (update instanceof TLUpdateUserPhoto) {
             TLUpdateUserPhoto updateUserPhoto = (TLUpdateUserPhoto) update;
 
@@ -252,7 +259,9 @@ public class TelegramEventCallback implements UpdateCallback {
             String imgUri = TelegramHelper.Files.getImgById(client, telegramPhoto, context);
 
             TelegramUpdateUserPhotoEvent event = new TelegramUpdateUserPhotoEvent(updateUserPhoto.getUserId(), imgUri);
-            listener.onUserPhotoUpdate(event);
+
+            if (listener != null)
+                listener.onUserPhotoUpdate(event);
         }
         //TODO MOAR EVENTS11111
     }

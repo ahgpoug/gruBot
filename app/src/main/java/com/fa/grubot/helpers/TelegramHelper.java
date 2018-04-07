@@ -99,22 +99,15 @@ public class TelegramHelper {
     }
 
     public static class Users {
-        public static String getName(TelegramClient telegramClient, int userId) {
+        public static String getName(TelegramClient telegramClient, int userId) throws Exception {
             TLUserFull user = getUser(telegramClient, userId);
             return extractName(user);
         }
 
-        public static TLUserFull getUser(TelegramClient telegramClient, int userId) {
-            try {
-                TLInputUser user = new TLInputUser();
-                user.setUserId(userId);
-                return telegramClient.usersGetFullUser(user);
-            } catch (RpcErrorException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        public static TLUserFull getUser(TelegramClient telegramClient, int userId) throws Exception {
+            TLInputUser user = new TLInputUser();
+            user.setUserId(userId);
+            return telegramClient.usersGetFullUser(user);
         }
 
         public static String extractName(TLUserFull tlUserFull) {
@@ -389,10 +382,10 @@ public class TelegramHelper {
             return users;
         }
 
-        public static User getChatUser(TelegramClient client, int userId, Context context) {
+        public static User getChatUser(TelegramClient client, int userId, Context context) throws Exception {
             TLUser tlUser = Users.getUser(client, userId).getUser().getAsUser();
             String fullname = TelegramHelper.Users.extractName(tlUser);
-            String userName = tlUser.getUsername();
+            String userName = "@" + tlUser.getUsername();
 
             TLAbsUserProfilePhoto absPhoto = tlUser.getPhoto();
             InputFileLocation inputFileLocation = null;

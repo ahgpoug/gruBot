@@ -21,11 +21,14 @@ import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
 import com.fa.grubot.objects.misc.CombinedMessagesListObject;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.util.Consts;
+import com.fa.grubot.util.Globals;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.tl.api.messages.TLAbsMessages;
 
 import java.sql.Date;
 import java.util.ArrayList;
+
+import static com.fa.grubot.util.Consts.STATE_NO_INTERNET_CONNECTION;
 
 public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSendRequestResponse {
 
@@ -51,10 +54,14 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
     public void notifyFragmentStarted(Chat chat) {
         this.chat = chat;
 
-        if (chat.getType().equals(Consts.Telegram))
-            model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
-        //else
+        if (Globals.InternetMethods.isNetworkAvailable(context)) {
+            if (chat.getType().equals(Consts.Telegram))
+                model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+            //else
             //model.sendVkMessagesRequest(this);
+        } else {
+            notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
+        }
     }
 
     public void sendMessage(String message) {
@@ -112,7 +119,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
             case Consts.STATE_CONTENT:
                 fragment.setupRecyclerView(messages);
                 break;
-            case Consts.STATE_NO_INTERNET_CONNECTION:
+            case STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
             case Consts.STATE_NO_DATA:
@@ -170,12 +177,20 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
                 public void onUserPhotoUpdate(TelegramUpdateUserPhotoEvent telegramUpdateUserPhotoEvent) {
                 }
             };
-            client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+            if (Globals.InternetMethods.isNetworkAvailable(context))
+                client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+            else
+                notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
         });
     }
 
     public void onRetryBtnClick() {
-        model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+        if (Globals.InternetMethods.isNetworkAvailable(context))
+            model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+    }
+
+    public void retryLoad(Chat chat, int flag, int totalMessages, SparseArray<User> users) {
+        model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalMessages, users);
     }
 
     private boolean messageAlreadyAdded(ChatMessage chatMessage) {
@@ -188,7 +203,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
     }
 
     public void destroy() {
-        if (client != null)
+        if (client != null && !client.isClosed())
             client.close(false);
         fragment = null;
         model = null;
