@@ -86,11 +86,6 @@ public class ProfileFragment extends BaseFragment implements ProfileFragmentBase
         hideMainToolbar();
         userId = this.getArguments().getString("userId");
         instance = this.getArguments().getInt("instance");
-        currentUser = (CurrentUser) this.getArguments().getSerializable("currentUser");
-        if (currentUser != null)
-            userId = String.valueOf(currentUser.getTelegramUser().getId());
-
-        Log.d("tag", userId);
 
         setHasOptionsMenu(true);
         unbinder = ButterKnife.bind(this, v);

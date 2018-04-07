@@ -9,7 +9,7 @@ import android.widget.Toast;
 import com.fa.grubot.fragments.BaseFragment;
 import com.fa.grubot.fragments.ChatsListFragment;
 import com.fa.grubot.fragments.DashboardFragment;
-import com.fa.grubot.fragments.ProfileFragment;
+import com.fa.grubot.profile.ProfileFragmentV2;
 import com.fa.grubot.fragments.SettingsFragment;
 import com.fa.grubot.fragments.WorkInProgressFragment;
 import com.fa.grubot.objects.users.VkUser;
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements BaseFragment.Frag
             case TAB_SEARCH:
                 return new WorkInProgressFragment();
             case TAB_PROFILE:
-                return ProfileFragment.newInstance(0, App.INSTANCE.getCurrentUser(), null);
+                return ProfileFragmentV2.getInstanse();
             case TAB_DASHBOARD:
                 return DashboardFragment.newInstance(0);
             case TAB_CHATS:

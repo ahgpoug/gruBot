@@ -1,16 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_material_light">
+    android:background="@color/background_material_light"
+    android:orientation="vertical">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:overScrollMode="never">
-    </android.support.v7.widget.RecyclerView>
+    <ImageView
+        android:id="@+id/image_profile"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@mipmap/ic_launcher"
+        android:layout_marginTop="25dp"/>
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/name_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:editable="false"
+        android:text="Имя пользователя"
+        app:met_helperText="Имя пользователя"
+        app:met_helperTextAlwaysShown="true"
+        app:met_helperTextColor="@color/black"
+        android:layout_marginTop="25dp"/>
+
+    <Button
+        android:id="@+id/btn_profile_exit"
+
+        android:layout_width="270dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_horizontal"
+
+        android:layout_marginTop="125dp"
+        android:background="@drawable/buttonshape"
+        android:text="Выйти"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp" />
+
+    <ProgressBar
+        android:id="@+id/progressBar_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_marginTop="225dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:visibility="gone"/>
 
 </LinearLayout>

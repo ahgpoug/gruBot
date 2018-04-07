@@ -86,6 +86,8 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.3.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
     annotationProcessor 'frankiesardo:icepick-processor:3.2.0'
+    //views
+    compile 'com.rengwuxian.materialedittext:library:2.1.4'
 }
 
 
