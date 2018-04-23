@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -31,18 +33,22 @@ import com.github.badoualy.telegram.tl.api.auth.TLSentCode;
 import com.github.badoualy.telegram.tl.exception.RpcErrorException;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import icepick.Icepick;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
+import io.reactivex.schedulers.Schedulers;
 
 import static com.fa.grubot.App.INSTANCE;
 
 public class TelegramVerificationFragment extends Fragment implements TelegramVerificationFragmentBase {
-    @Nullable @BindView(R.id.verificationCode) EditText verificationCode;
+    @Nullable @BindView(R.id.verificationCode) EditText verificationCodeText;
     @Nullable @BindView(R.id.continueBtn) Button continueBtn;
     @BindView(R.id.toolbar) Toolbar toolbar;
 
@@ -54,7 +60,7 @@ public class TelegramVerificationFragment extends Fragment implements TelegramVe
 
     public static TelegramVerificationFragment newInstance(TLSentCode sentCode, String phoneNumber) {
         Bundle args = new Bundle();
-        args.putString("phoneNumber", phoneNumber);
+        args.putString("phoneNumberText", phoneNumber);
         args.putSerializable("sentCode", sentCode);
         TelegramVerificationFragment fragment = new TelegramVerificationFragment();
         fragment.setArguments(args);
@@ -73,7 +79,7 @@ public class TelegramVerificationFragment extends Fragment implements TelegramVe
         View v = inflater.inflate(R.layout.fragment_telegram_verification, container, false);
         setHasOptionsMenu(true);
         sentCode = (TLSentCode) this.getArguments().getSerializable("sentCode");
-        phoneNumber = this.getArguments().getString("phoneNumber");
+        phoneNumber = this.getArguments().getString("phoneNumberText");
         unbinder = ButterKnife.bind(this, v);
 
         presenter.notifyFragmentStarted();
@@ -97,8 +103,22 @@ public class TelegramVerificationFragment extends Fragment implements TelegramVe
 
     public void setupViews() {
         continueBtn.setOnClickListener(v -> {
-            if (!verificationCode.getText().toString().isEmpty())
-                (new CheckAuthMessageAsyncTask(getActivity(), sentCode, phoneNumber, verificationCode.getText().toString())).execute();
+            String verificationCode = verificationCodeText.getText().toString();
+            if (!verificationCode.isEmpty()) {
+                Observable<Object> verifyAuthCodeObs = App.INSTANCE.telegramMessenger.verifyAuthCodeObs(sentCode, phoneNumber, verificationCode).timeout(3, TimeUnit.SECONDS).onErrorResumeNext(Observable.empty()).defaultIfEmpty(new Exception());
+
+                Observable.defer(() -> verifyAuthCodeObs)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(returnObject -> {
+                            if (returnObject instanceof TLAuthorization) {
+                                getActivity().startActivity(new Intent(getActivity(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
+                            } else if (returnObject instanceof Exception) {
+                                Toast.makeText(getActivity(), "Ошибка: " + ((Exception) returnObject).getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .subscribe();
+            }
         });
     }
 
@@ -118,70 +138,5 @@ public class TelegramVerificationFragment extends Fragment implements TelegramVe
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private static class CheckAuthMessageAsyncTask extends AsyncTask<Void, Void, Object> {
-        private WeakReference<Context> context;
-        private TLSentCode sentCode;
-        private String phoneNumber;
-        private String verificationCode;
-        private MaterialDialog loadingDialog;
-
-        private CheckAuthMessageAsyncTask(Context context, TLSentCode sentCode, String phoneNumber, String verificationCode) {
-            this.context = new WeakReference<>(context);
-            this.sentCode = sentCode;
-            this.phoneNumber = phoneNumber;
-            this.verificationCode = verificationCode;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            if (loadingDialog == null || !loadingDialog.isShowing()) {
-                loadingDialog = Globals.getLoadingDialog(context.get());
-                loadingDialog.show();
-            }
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Object doInBackground(Void... params) {
-            Object returnObject;
-
-            TelegramClient client = INSTANCE.getNewTelegramClient(null);
-
-            try {
-                TLAuthorization authorization = client.authSignIn(phoneNumber, sentCode.getPhoneCodeHash(), verificationCode);
-                returnObject = authorization.getUser().getAsUser();
-            } catch (RpcErrorException e) {
-                e.printStackTrace();
-                returnObject = e;
-            } catch (Exception e) {
-                e.printStackTrace();
-                returnObject = e;
-            } finally {
-                INSTANCE.closeTelegramClient();
-            }
-
-            return returnObject;
-        }
-
-        @Override
-        protected void onPostExecute(Object result) {
-            if (loadingDialog != null && loadingDialog.isShowing()) {
-                loadingDialog.dismiss();
-            }
-
-            if (result instanceof Exception) {
-                Toast.makeText(context.get(), "Ошибка: " + ((Exception) result).getMessage(), Toast.LENGTH_LONG).show();
-            } else {
-                CurrentUser currentUser = App.INSTANCE.getCurrentUser();
-                currentUser.setTelegramUser((TLUser) result);
-
-                if (!currentUser.hasVkUser())
-                    context.get().startActivity(new Intent(context.get(), MainActivity.class));
-                ((LoginActivity) context.get()).finish();
-            }
-            super.onPostExecute(result);
-        }
     }
 }

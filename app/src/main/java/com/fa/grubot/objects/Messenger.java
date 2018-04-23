@@ -19,7 +19,7 @@ public abstract class Messenger {
         this.context = context;
     }
 
-    public User getChatUser() {
+    public User getCurrentUser() {
         return currentUser;
     }
 

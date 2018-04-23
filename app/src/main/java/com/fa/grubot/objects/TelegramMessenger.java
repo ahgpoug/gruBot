@@ -29,6 +29,8 @@ import com.github.badoualy.telegram.tl.api.TLPeerChannel;
 import com.github.badoualy.telegram.tl.api.TLPeerChat;
 import com.github.badoualy.telegram.tl.api.TLPeerUser;
 import com.github.badoualy.telegram.tl.api.TLUser;
+import com.github.badoualy.telegram.tl.api.auth.TLAuthorization;
+import com.github.badoualy.telegram.tl.api.auth.TLSentCode;
 import com.github.badoualy.telegram.tl.api.messages.TLAbsDialogs;
 
 import java.io.File;
@@ -100,7 +102,7 @@ public class TelegramMessenger extends Messenger {
 
     @Override
     public Observable<List<Chat>> getChatsListObs() {
-        return Observable.create(observableTMessages -> {
+        return Observable.create(messagesObs -> {
             ArrayList<Chat> chatsList = new ArrayList<>();
             TelegramClient client = getNewTelegramClient(null).getDownloaderClient();
 
@@ -174,7 +176,43 @@ public class TelegramMessenger extends Messenger {
                 chatsList.add(chat);
             });
             client.close(false);
-            observableTMessages.onNext(chatsList);
+            messagesObs.onNext(chatsList);
+        });
+    }
+
+    public Observable<Object> sendAuthCodeObs(final String phoneNumber) {
+        return Observable.create(authCodeObs -> {
+            Object returnObject = null;
+            TelegramClient client = getNewTelegramClient(null);
+
+            try {
+                returnObject = client.authSendCode(false, phoneNumber, true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                returnObject = e;
+            } finally {
+                client.close(false);
+                authCodeObs.onNext(returnObject);
+            }
+        });
+    }
+
+    public Observable<Object> verifyAuthCodeObs(final TLSentCode sentCode, final String phoneNumber, final String authCode) {
+        return Observable.create(authCodeObs -> {
+            Object returnObject = null;
+            TelegramClient client = getNewTelegramClient(null);
+
+            try {
+                TLAuthorization authorization = client.authSignIn(phoneNumber, sentCode.getPhoneCodeHash(), authCode);
+                setChatUser(TelegramHelper.Users.getChatUserFromInput(client, context, new TLInputUserSelf()));
+                returnObject = authorization;
+            } catch (Exception e) {
+                e.printStackTrace();
+                returnObject = e;
+            } finally {
+                client.close(false);
+                authCodeObs.onNext(returnObject);
+            }
         });
     }
 

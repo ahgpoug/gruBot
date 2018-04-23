@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.fa.grubot.App;
 import com.fa.grubot.LoginActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.TelegramLoginFragmentBase;
@@ -27,18 +28,22 @@ import com.github.badoualy.telegram.tl.api.auth.TLSentCode;
 import com.github.badoualy.telegram.tl.exception.RpcErrorException;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import icepick.Icepick;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
+import io.reactivex.schedulers.Schedulers;
 
 import static com.fa.grubot.App.INSTANCE;
 
 public class TelegramLoginFragment extends Fragment implements TelegramLoginFragmentBase {
-    @Nullable @BindView(R.id.phoneNumber) EditText phoneNumber;
+    @Nullable @BindView(R.id.phoneNumber) EditText phoneNumberText;
     @Nullable @BindView(R.id.continueBtn) Button continueBtn;
     @BindView(R.id.toolbar) Toolbar toolbar;
 
@@ -93,8 +98,30 @@ public class TelegramLoginFragment extends Fragment implements TelegramLoginFrag
 
     public void setupViews() {
         continueBtn.setOnClickListener(v -> {
-            if (!phoneNumber.getText().toString().isEmpty())
-                new SendAuthMessageAsyncTask(getActivity(), phoneNumber.getText().toString()).execute();
+            String phoneNumber = phoneNumberText.getText().toString();
+
+            if (!phoneNumber.isEmpty()) {
+                Observable<Object> telegramSendAuthCodeObs = App.INSTANCE.telegramMessenger.sendAuthCodeObs(phoneNumber).timeout(3, TimeUnit.SECONDS).onErrorResumeNext(Observable.empty()).defaultIfEmpty(new Exception());
+
+                Observable.defer(() -> telegramSendAuthCodeObs)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(returnObject -> {
+                            if (returnObject instanceof TLSentCode) {
+                                TLSentCode tlSentCode = (TLSentCode) returnObject;
+                                Fragment telegramVerificationFragment = TelegramVerificationFragment.newInstance(tlSentCode, phoneNumber);
+
+                                FragmentManager fm = getActivity().getSupportFragmentManager();
+                                FragmentTransaction transaction = fm.beginTransaction();
+                                transaction.addToBackStack(null);
+                                transaction.replace(R.id.content, telegramVerificationFragment);
+                                transaction.commit();
+                            } else if (returnObject instanceof Exception) {
+                                Toast.makeText(getActivity(), "Ошибка: " + ((Exception) returnObject).getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .subscribe();
+            }
         });
     }
 
@@ -107,64 +134,5 @@ public class TelegramLoginFragment extends Fragment implements TelegramLoginFrag
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private static class SendAuthMessageAsyncTask extends AsyncTask<Void, Void, Object> {
-        private WeakReference<Context> context;
-        private String phoneNumber;
-        private MaterialDialog loadingDialog;
-
-        private SendAuthMessageAsyncTask(Context context, String phoneNumber) {
-            this.context = new WeakReference<>(context);
-            this.phoneNumber = phoneNumber;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            if (loadingDialog == null || !loadingDialog.isShowing()) {
-                loadingDialog = Globals.getLoadingDialog(context.get());
-                loadingDialog.show();
-            }
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Object doInBackground(Void... params) {
-            Object returnObject;
-
-            TelegramClient client = INSTANCE.getNewTelegramClient(null);
-
-            try {
-                returnObject = client.authSendCode(false, phoneNumber, true);
-            } catch (RpcErrorException e) {
-                returnObject = e;
-            } catch (Exception e) {
-                returnObject = e;
-            } finally {
-                INSTANCE.closeTelegramClient();
-            }
-
-            return returnObject;
-        }
-
-        @Override
-        protected void onPostExecute(Object result) {
-            if (loadingDialog != null && loadingDialog.isShowing()) {
-                loadingDialog.dismiss();
-            }
-
-            if (result instanceof Exception) {
-                Toast.makeText(context.get(), "Ошибка: " + ((Exception) result).getMessage(), Toast.LENGTH_LONG).show();
-            } else {
-                Fragment telegramVerificationFragment = TelegramVerificationFragment.newInstance((TLSentCode) result, phoneNumber);
-
-                FragmentManager fm = ((LoginActivity) context.get()).getSupportFragmentManager();
-                FragmentTransaction transaction = fm.beginTransaction();
-                transaction.addToBackStack(null);
-                transaction.replace(R.id.content, telegramVerificationFragment);
-                transaction.commit();
-            }
-            super.onPostExecute(result);
-        }
     }
 }

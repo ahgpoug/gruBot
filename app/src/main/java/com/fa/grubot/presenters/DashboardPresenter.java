@@ -54,20 +54,24 @@ public class DashboardPresenter {
     }
 
     private void initializeQueriesAndListeners() {
-        if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
-            archiveAnnouncementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
-            announcementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-            votesQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-            archiveVotesQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), 0);
-            articlesQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
+        if (App.INSTANCE.telegramMessenger.isHasUser()) {
+            String telegramUserId = App.INSTANCE.telegramMessenger.getCurrentUser().getUserId();
+
+            archiveAnnouncementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + telegramUserId, "archive");
+            announcementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + telegramUserId, "new");
+            votesQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + telegramUserId, "new");
+            archiveVotesQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + telegramUserId, 0);
+            articlesQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + telegramUserId, "new");
         }
 
-        if (App.INSTANCE.getCurrentUser().hasVkUser()) {
-            announcementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
-            archiveAnnouncementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "archive");
-            votesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
-            archiveVotesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), 0);
-            articlesQueryVk = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
+        if (App.INSTANCE.vkMessenger.isHasUser()) {
+            String vkUserId = App.INSTANCE.vkMessenger.getCurrentUser().getUserId();
+
+            announcementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + vkUserId, "new");
+            archiveAnnouncementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + vkUserId, "archive");
+            votesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + vkUserId, "new");
+            archiveVotesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + vkUserId, 0);
+            articlesQueryVk = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + vkUserId, "new");
         }
     }
 

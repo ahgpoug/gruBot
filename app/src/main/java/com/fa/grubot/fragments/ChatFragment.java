@@ -247,12 +247,9 @@ public class ChatFragment extends Fragment
         messagesListAdapter.setOnMessageLongClickListener(message ->{
             new MaterialDialog.Builder(this.getContext())
                     .items("Переслать...", "Отмена")
-                    .itemsCallback(new MaterialDialog.ListCallback() {
-                        @Override
-                        public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                            if (which == 0){
-                                resendMessage(message.getText());
-                            }
+                    .itemsCallback((dialog, view, which, text) -> {
+                        if (which == 0){
+                            resendMessage(message.getText());
                         }
                     })
                     .show();
