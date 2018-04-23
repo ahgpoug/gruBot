@@ -62,7 +62,20 @@ public class MainActivity extends AppCompatActivity implements BaseFragment.Frag
     }
 
     @Override
+    protected void onPause() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onDestroy();
     }
 

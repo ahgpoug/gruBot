@@ -85,6 +85,18 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
     }
 
     @Override
+    public void onPause() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
+        super.onStop();
+    }
+
+    @Override
     public void onDestroy() {
         presenter.destroy();
         super.onDestroy();

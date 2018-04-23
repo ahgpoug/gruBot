@@ -99,7 +99,7 @@ public class ChatFragment extends Fragment
     public void onResume() {
         presenter.notifyFragmentStarted(chat);
         if (chat.getType().equals(Consts.Telegram)) {
-            //presenter.setUpdateCallback();
+            presenter.setUpdateCallback();
         } else if (chat.getType().equals(Consts.VK) && false){
             presenter.setupPollingVk();
         }
@@ -112,12 +112,13 @@ public class ChatFragment extends Fragment
 
     @Override
     public void onPause() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onPause();
     }
 
     @Override
     public void onStop() {
-        Log.d("tag", "onStop called");
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onStop();
     }
 

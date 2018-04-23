@@ -56,7 +56,7 @@ public class TelegramMessenger extends Messenger {
     private File nearestDcFile;
 
     private TelegramApp application;
-    TelegramClient telegramClient;
+    private TelegramClient telegramClient;
 
     public TelegramMessenger(Context context) {
         super(context);
@@ -88,6 +88,11 @@ public class TelegramMessenger extends Messenger {
             return telegramClient.getDownloaderClient();
         else
             return getTelegramClient(null).getDownloaderClient();
+    }
+
+    public void closeTelegramClient() {
+        if (telegramClient != null)
+            telegramClient.close(false);
     }
 
     public Observable<Object> logOutObs() {

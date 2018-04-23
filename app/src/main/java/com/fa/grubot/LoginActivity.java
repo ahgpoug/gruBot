@@ -50,16 +50,19 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onPause();
     }
 
     @Override
     protected void onStop() {
+        App.INSTANCE.telegramMessenger.closeTelegramClient();
         super.onStop();
     }
 }
