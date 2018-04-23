@@ -10,7 +10,7 @@
 
     <color name="colorVote">#c6dcff</color>
     <color name="colorAnnouncement">#fcdbdb</color>
-    <color name="colorChat">#e6ff93</color>
+    <color name="colorArticle">#e6ff93</color>
     <color name="colorSettings">#ced1c6</color>
 
     <color name="bg_row_background">#fa315b</color>

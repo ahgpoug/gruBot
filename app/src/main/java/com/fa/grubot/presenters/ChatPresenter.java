@@ -19,14 +19,26 @@ import com.fa.grubot.objects.events.telegram.TelegramMessageEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserNameEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
 import com.fa.grubot.objects.misc.CombinedMessagesListObject;
+import com.fa.grubot.objects.pojos.PollingSererInfo;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.Globals;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.tl.api.messages.TLAbsMessages;
+import com.google.gson.Gson;
+import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.model.VKApiPoll;
+
+import org.json.JSONException;
 
 import java.sql.Date;
 import java.util.ArrayList;
+
+import rx.Single;
 
 import static com.fa.grubot.util.Consts.STATE_NO_INTERNET_CONNECTION;
 
@@ -55,17 +67,23 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         this.chat = chat;
 
         if (Globals.InternetMethods.isNetworkAvailable(context)) {
-            if (chat.getType().equals(Consts.Telegram))
+            if (chat.getType().equals(Consts.Telegram)) {
                 model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
-            //else
-            //model.sendVkMessagesRequest(this);
+            } else if (chat.getType().equals(Consts.VK)) {
+                model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+            }
         } else {
             notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
         }
     }
 
     public void sendMessage(String message) {
-        model.sendMessage(context, chat, presenter, message);
+        if (chat.getType().equals(Consts.Telegram)) {
+            model.sendMessage(context, chat, presenter, message);
+        } else if (chat.getType().equals(Consts.VK)) {
+            model.sendVkMessage(context, chat, presenter, message);
+        }
+
     }
 
     @Override
@@ -117,13 +135,13 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
 
         switch (state) {
             case Consts.STATE_CONTENT:
-                fragment.setupRecyclerView(messages);
+                fragment.setupRecyclerView(messages, chat.getType());
                 break;
             case STATE_NO_INTERNET_CONNECTION:
                 fragment.setupRetryButton();
                 break;
             case Consts.STATE_NO_DATA:
-                fragment.setupRecyclerView(messages);
+                fragment.setupRecyclerView(messages, chat.getType());
                 break;
         }
     }
@@ -184,13 +202,62 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         });
     }
 
+    public void setupPollingVk() {
+        VKRequest request = new VKRequest("messages.getLongPollServer",
+                VKParameters.from("need_pts", 1));
+        Single.create(ss -> {
+            request.executeWithListener(new VKRequest.VKRequestListener() {
+                @Override
+                public void onComplete(VKResponse response) {
+                    Gson gson = new Gson();
+                    try {
+                        PollingSererInfo psi = gson.fromJson(response.json.getJSONObject("response").toString(), PollingSererInfo.class);
+                        ss.onSuccess(psi);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onError(VKError error) {
+                    super.onError(error);
+                }
+            });
+        }).map(obj -> (PollingSererInfo) obj)
+                .subscribe(psi -> {
+                    VKRequest requesPolling = new VKRequest("messages.getLongPollHistory",
+                            VKParameters.from("ts", psi.getTs()));
+                    requesPolling.executeWithListener(new VKRequest.VKRequestListener() {
+                        @Override
+                        public void onComplete(VKResponse response) {
+                            super.onComplete(response);
+
+                        }
+
+                        @Override
+                        public void onError(VKError error) {
+                            super.onError(error);
+                        }
+                    });
+                });
+
+    }
+
     public void onRetryBtnClick() {
         if (Globals.InternetMethods.isNetworkAvailable(context))
-            model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+            if (chat.getType().equals(Consts.Telegram)) {
+                model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+            } else if (chat.getType().equals(Consts.VK)) {
+                model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+            }
     }
 
     public void retryLoad(Chat chat, int flag, int totalMessages, SparseArray<User> users) {
-        model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalMessages, users);
+        if (chat.getType().equals(Consts.Telegram)) {
+            model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalMessages, users);
+        } else if (chat.getType().equals(Consts.VK)) {
+            model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, 0, users);
+        }
     }
 
     private boolean messageAlreadyAdded(ChatMessage chatMessage) {
@@ -207,5 +274,8 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
             client.close(false);
         fragment = null;
         model = null;
+    }
+
+    public void loadmoreVkMessages() {
     }
 }

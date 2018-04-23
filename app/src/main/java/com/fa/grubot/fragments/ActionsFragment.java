@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.fa.grubot.App;
+import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.ActionsFragmentBase;
 import com.fa.grubot.adapters.ActionsRecyclerAdapter;
@@ -37,9 +39,10 @@ import io.reactivex.annotations.Nullable;
 
 public class ActionsFragment extends Fragment implements ActionsFragmentBase, RecyclerItemTouchHelper.RecyclerItemTouchHelperListener, Serializable {
     public static final int TYPE_ANNOUNCEMENTS = 389;
-    public static final int TYPE_VOTES = 827;
+    public static final int TYPE_POLLS = 827;
     public static final int TYPE_ANNOUNCEMENTS_ARCHIVE = 390;
-    public static final int TYPE_VOTES_ARCHIVE = 828;
+    public static final int TYPE_POLLS_ARCHIVE = 828;
+    public static final int TYPE_ARTICLES = 8242;
 
     @Nullable @BindView(R.id.recycler) RecyclerView actionsView;
     @Nullable @BindView(R.id.retryBtn) Button retryBtn;
@@ -57,6 +60,14 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
 
     private int state;
     private int type;
+
+    public static ActionsFragment newInstance(int type) {
+        Bundle args = new Bundle();
+        args.putInt("type", type);
+        ActionsFragment fragment = new ActionsFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -107,6 +118,24 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
             actionsAdapter.clearItems();
     }
 
+    public void setupToolbar() {
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setVisibility(View.VISIBLE);
+        toolbar.setTitle("Статьи");
+
+        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
+        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+
+    private void animateViewAppearance(View view) {
+        view.setAlpha(0.0f);
+        view.animate()
+                .translationY(view.getHeight())
+                .alpha(1.0f)
+                .setListener(null);
+    }
+
     public void showRequiredViews() {
         progressBar.setVisibility(View.GONE);
         noInternet.setVisibility(View.GONE);
@@ -116,12 +145,15 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
         switch (state) {
             case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
+                animateViewAppearance(content);
                 break;
             case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
+                animateViewAppearance(noInternet);
                 break;
             case Consts.STATE_NO_DATA:
                 noData.setVisibility(View.VISIBLE);
+                animateViewAppearance(noData);
                 break;
         }
     }
@@ -153,7 +185,7 @@ public class ActionsFragment extends Fragment implements ActionsFragmentBase, Re
         actionsView.setItemAnimator(new DefaultItemAnimator());
         actionsView.setHasFixedSize(false);
 
-        if (type == TYPE_ANNOUNCEMENTS || type == TYPE_VOTES) {
+        if (type == TYPE_ANNOUNCEMENTS) {
             ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, this);
             new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(actionsView);
         }

@@ -29,9 +29,9 @@ public class App extends Application {
     private TelegramClient telegramClient;
     private CurrentUser currentUser;
 
-    private static final int API_ID = 0;
-    private static final String API_HASH = "";
-  
+    private static final int API_ID =;
+    private static final String API_HASH =;
+
     private static final String APP_VERSION = "1.0";
     private static final String MODEL = "Dev";
     private static final String SYSTEM_VERSION = "Dev";
@@ -40,6 +40,8 @@ public class App extends Application {
     private File authKeyFile;
     private File nearestDcFile;
     private File vkAccessTokenFile;
+
+    private String resendingMessage;
 
     private TelegramApp application;
 
@@ -144,5 +146,17 @@ public class App extends Application {
                 .distanceThreshold(0.5f)
                 .edge(false)
                 .build();
+    }
+
+    public String getResendingMessage() {
+        return resendingMessage;
+    }
+
+    public void setResendingMessage(String resendingMessage) {
+        this.resendingMessage = resendingMessage;
+    }
+
+    public void resetResendingMessage(){
+        resendingMessage = null;
     }
 }

@@ -7,6 +7,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -14,15 +17,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.fa.grubot.App;
-import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.GroupInfoFragmentBase;
-import com.fa.grubot.adapters.GroupInfoRecyclerAdapter;
-import com.fa.grubot.adapters.VoteRecyclerAdapter;
+import com.fa.grubot.adapters.ActionsRecyclerAdapter;
+import com.fa.grubot.adapters.PollRecyclerAdapter;
+import com.fa.grubot.adapters.UsersRecyclerAdapter;
 import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.misc.VoteOption;
@@ -33,14 +37,11 @@ import com.fa.grubot.util.ImageLoader;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.innodroid.expandablerecycler.ExpandableRecyclerAdapter;
+
+import net.cachapa.expandablelayout.ExpandableLayout;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,11 +53,26 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
 
     @Nullable @BindView(R.id.collapsingToolbar) Toolbar collapsingToolbar;
     @Nullable @BindView(R.id.app_bar) AppBarLayout appBarLayout;
-    @Nullable @BindView(R.id.recycler) RecyclerView buttonsView;
     @Nullable @BindView(R.id.chatImage) ImageView groupImage;
+
+    @Nullable @BindView(R.id.announcementsRecycler) RecyclerView announcementsRecycler;
+    @Nullable @BindView(R.id.pollsRecycler) RecyclerView pollsRecycler;
+    @Nullable @BindView(R.id.articlesRecycler) RecyclerView articlesRecycler;
+    @Nullable @BindView(R.id.participantsRecycler) RecyclerView participantsRecycler;
+
+    @Nullable @BindView(R.id.announcementsBtn) TextView announcementsBtn;
+    @Nullable @BindView(R.id.pollsBtn) TextView pollsBtn;
+    @Nullable @BindView(R.id.articlesBtn) TextView articlesBtn;
+    @Nullable @BindView(R.id.participantsBtn) TextView participantsBtn;
+
+    @Nullable @BindView(R.id.announcementsLayout) ExpandableLayout announcementsLayout;
+    @Nullable @BindView(R.id.pollsLayout) ExpandableLayout pollsLayout;
+    @Nullable @BindView(R.id.articlesLayout) ExpandableLayout articlesLayout;
+    @Nullable @BindView(R.id.participantsLayout) ExpandableLayout participantsLayout;
 
     @Nullable @BindView(R.id.fam) FloatingActionMenu fam;
     @Nullable @BindView(R.id.fab_add_announcement) FloatingActionButton announcementFab;
+    @Nullable @BindView(R.id.fab_add_article) FloatingActionButton articleFab;
     @Nullable @BindView(R.id.fab_add_vote) FloatingActionButton voteFab;
     @Nullable @BindView(R.id.retryBtn) Button retryBtn;
 
@@ -65,7 +81,6 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
     @Nullable @BindView(R.id.content_fam) View content_fam;
     @Nullable @BindView(R.id.noInternet) View noInternet;
 
-    private GroupInfoRecyclerAdapter groupInfoAdapter;
     private GroupInfoPresenter presenter;
     private Unbinder unbinder;
 
@@ -90,17 +105,14 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        presenter = new GroupInfoPresenter(this);
         View v = inflater.inflate(R.layout.fragment_group_info, container, false);
-
-        hideMainToolbar();
         setHasOptionsMenu(true);
 
         chat = (Chat) this.getArguments().getSerializable("chat");
         instance = this.getArguments().getInt("instance");
         unbinder = ButterKnife.bind(this, v);
 
-        presenter.notifyFragmentStarted(chat);
+        presenter = new GroupInfoPresenter(this, getActivity(), chat);
 
         return v;
     }
@@ -108,7 +120,10 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
     @Override
     public void onResume() {
         super.onResume();
-        presenter.notifyFragmentStarted(chat);
+        if (!isOneOfTheAdaptersExists())
+            presenter.notifyFragmentStarted(chat);
+        else
+            presenter.setRegistration();
     }
 
     @Override
@@ -131,10 +146,24 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
 
     private void terminateRegistration() {
         presenter.removeRegistration();
-        if (groupInfoAdapter != null)
-            groupInfoAdapter.clearItems();
+
+        if (getAdapterByRecyclerType(Consts.TYPE_ANNOUNCEMENT) != null)
+            ((ActionsRecyclerAdapter) getAdapterByRecyclerType(Consts.TYPE_ANNOUNCEMENT)).clearItems();
+        if (getAdapterByRecyclerType(Consts.TYPE_POLL) != null)
+            ((ActionsRecyclerAdapter)  getAdapterByRecyclerType(Consts.TYPE_POLL)).clearItems();
+        if (getAdapterByRecyclerType(Consts.TYPE_ARTICLE) != null)
+            ((ActionsRecyclerAdapter) getAdapterByRecyclerType(Consts.TYPE_ARTICLE)).clearItems();
     }
 
+    private void animateViewAppearance(View view) {
+        view.setAlpha(0.0f);
+        view.animate()
+                .translationY(view.getHeight())
+                .alpha(1.0f)
+                .setListener(null);
+    }
+
+    @Override
     public void showRequiredViews() {
         progressBar.setVisibility(View.GONE);
         noInternet.setVisibility(View.GONE);
@@ -145,40 +174,36 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
                 appBarLayout.setExpanded(true);
                 content.setVisibility(View.VISIBLE);
                 content_fam.setVisibility(View.VISIBLE);
+
+                animateViewAppearance(content);
+                animateViewAppearance(content_fam);
                 break;
             case Consts.STATE_NO_INTERNET_CONNECTION:
                 appBarLayout.setExpanded(false);
                 noInternet.setVisibility(View.VISIBLE);
+                animateViewAppearance(noInternet);
                 break;
         }
     }
 
+    @Override
     public void setupLayouts(boolean isNetworkAvailable) {
         if (isNetworkAvailable)
             state = Consts.STATE_CONTENT;
         else {
-            groupInfoAdapter = null;
+            announcementsRecycler.setAdapter(null);
+            pollsRecycler.setAdapter(null);
+            articlesRecycler.setAdapter(null);
+            participantsRecycler.setAdapter(null);
             state = Consts.STATE_NO_INTERNET_CONNECTION;
         }
     }
 
-    private void hideMainToolbar() {
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.GONE);
-
-        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
-    }
-
+    @Override
     public void setupToolbar() {
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.GONE);
-        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+        AppCompatActivity activity = (AppCompatActivity)getActivity();
 
-        ((AppCompatActivity) getActivity()).setSupportActionBar(collapsingToolbar);
+        activity.setSupportActionBar(collapsingToolbar);
         String title = chat.getName();
 
         ImageLoader imageLoader = new ImageLoader(this);
@@ -188,15 +213,33 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
             imageLoader.loadToolbarImage(groupImage, imageLoader.getUriOfDrawable(R.drawable.material_flat));
         }
 
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(title);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(true);
+        activity.getSupportActionBar().setTitle(title);
+
+        collapsingToolbar.bringToFront();
+    }
+
+    @Override
+    public void setupButtonClickListeners() {
+        announcementsBtn.setOnClickListener(v -> {
+            performExpansionByType(Consts.TYPE_ANNOUNCEMENT);
+        });
+
+        pollsBtn.setOnClickListener(v -> {
+            performExpansionByType(Consts.TYPE_POLL);
+        });
+
+        articlesBtn.setOnClickListener(v -> {
+            performExpansionByType(Consts.TYPE_ARTICLE);
+        });
+
+        participantsBtn.setOnClickListener(v -> {
+            performExpansionByType(Consts.TYPE_USER);
+        });
     }
 
     public void setupFab(){
         fam.setClosedOnTouchOutside(true);
         announcementFab.setOnClickListener(view -> {
-            groupInfoAdapter.collapseAll(); //TODO не баг, а фича. Если убрать все сломается и мне сейчас лень это фиксить, когда можно просто написать эту строку. Если кто-то это прочитает, то ёбните меня.
             new MaterialDialog.Builder(getActivity())
                     .title("Объявление")
                     .customView(R.layout.dialog_add_announcement, false)
@@ -214,29 +257,39 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
                                     .cancelable(false)
                                     .show();
 
-                            HashMap<String, Object> announcement = new HashMap<>();
-                            announcement.put("chat", chat.getId());
-                            announcement.put("groupName", chat.getName());
-                            announcement.put("author", App.INSTANCE.getCurrentUser().getTelegramUser().getId());
-                            announcement.put("authorName", App.INSTANCE.getCurrentUser().getTelegramUser().getFirstName() + " " + App.INSTANCE.getCurrentUser().getTelegramUser().getLastName());
-                            announcement.put("desc", desc.getText().toString());
-                            announcement.put("date", new Date());
-                            announcement.put("text", text.getText().toString());
-                            HashMap<String, String> users = new HashMap<>();
-                            for (Map.Entry<String, Boolean> user : chat.getUsers().entrySet())
-                                users.put(user.getKey(), "new");
-                            announcement.put("users", users);
+                            String announcementText = text.getText().toString();
+                            announcementText = announcementText.replace("\n", "").replace("\r", "").replace("!", "");
+                            String message = "!" + desc.getText().toString() + "!\n" + announcementText;
+                            presenter.sendTelegramMessage(progress, message);
+                        }
 
-                            FirebaseFirestore.getInstance().collection("announcements")
-                                    .add(announcement)
-                                    .addOnSuccessListener(aVoid -> {
-                                        progress.dismiss();
-                                        Toast.makeText(getActivity().getApplicationContext(), "Успешно добавлено", Toast.LENGTH_LONG).show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        progress.dismiss();
-                                        Toast.makeText(getActivity().getApplicationContext(), "Ошибка добавления", Toast.LENGTH_LONG).show();
-                                    });
+                        fam.close(true);
+                    })
+                    .show();
+        });
+
+        articleFab.setOnClickListener(view -> {
+            new MaterialDialog.Builder(getActivity())
+                    .title("Статья")
+                    .customView(R.layout.dialog_add_article, false)
+                    .canceledOnTouchOutside(false)
+                    .positiveText(android.R.string.ok)
+                    .negativeText(android.R.string.cancel)
+                    .onPositive((dialog, which) -> {
+                        EditText desc = (EditText) dialog.findViewById(R.id.articleDesc);
+                        EditText text = (EditText) dialog.findViewById(R.id.articleText);
+
+                        if (!desc.toString().isEmpty() && !text.toString().isEmpty()) {
+                            MaterialDialog progress = new MaterialDialog.Builder(getActivity())
+                                    .content("Пожалуйста, подождите")
+                                    .progress(true, 0)
+                                    .cancelable(false)
+                                    .show();
+
+                            String articleText = text.getText().toString();
+                            articleText = articleText.replace("\n", "").replace("\r", "").replace("*", "");
+                            String message = "*" + desc.getText().toString() + "*\n" + articleText;
+                            presenter.sendTelegramMessage(progress, message);
                         }
 
                         fam.close(true);
@@ -245,8 +298,6 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
         });
 
         voteFab.setOnClickListener(view -> {
-            groupInfoAdapter.collapseAll(); //TODO не баг, а фича. Если убрать все сломается и мне сейчас лень это фиксить, когда можно просто написать эту строку. Если кто-то это прочитает, то ёбните меня.
-
             MaterialDialog materialDialog = new MaterialDialog.Builder(getActivity())
                     .title("Голосование")
                     .customView(R.layout.dialog_add_vote, false)
@@ -258,10 +309,10 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
                     .onNegative((dialog, which) -> dialog.dismiss())
                     .build();
             RecyclerView voteRecycler = materialDialog.getView().findViewById(R.id.vote_recycler);
-            EditText desc = (EditText) materialDialog.getView().findViewById(R.id.voteDesc);
+            EditText desc = materialDialog.getView().findViewById(R.id.voteDesc);
             LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
-            VoteRecyclerAdapter voteAdapter = new VoteRecyclerAdapter(new ArrayList<>());
+            PollRecyclerAdapter voteAdapter = new PollRecyclerAdapter(new ArrayList<>());
             voteRecycler.setLayoutManager(mLayoutManager);
             voteRecycler.setHasFixedSize(false);
 
@@ -298,36 +349,14 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
                             .cancelable(false)
                             .show();
 
-                    HashMap<String, Object> vote = new HashMap<>();
-                    vote.put("chat", chat.getId());
-                    vote.put("groupName", chat.getName());
-                    vote.put("author", App.INSTANCE.getCurrentUser().getTelegramUser().getId());
-                    vote.put("authorName", App.INSTANCE.getCurrentUser().getTelegramUser().getFirstName() + " " + App.INSTANCE.getCurrentUser().getTelegramUser().getLastName());
-                    vote.put("desc", desc.getText().toString());
-                    vote.put("date", new Date());
-
-                    HashMap<String, String> users = new HashMap<>();
-                    for (Map.Entry<String, Boolean> user : chat.getUsers().entrySet())
-                        users.put(user.getKey(), "new");
-                    vote.put("users", users);
-
-                    HashMap<String, String> voteOptions = new HashMap<>();
+                    String message = "?" + desc.getText().toString() + "?";
+                    StringBuilder builder = new StringBuilder(message);
                     for (int i = 0; i < options.size(); i++) {
-                        voteOptions.put(String.valueOf(i), options.get(i).getText());
+                        builder.append("\n").append(i + 1).append(". ").append(options.get(i).getText().replace("?", ""));
                     }
-                    vote.put("voteOptions", voteOptions);
-
-                    FirebaseFirestore.getInstance().collection("votes")
-                            .add(vote)
-                            .addOnSuccessListener(aVoid -> {
-                                progress.dismiss();
-                                Toast.makeText(getActivity().getApplicationContext(), "Успешно добавлено", Toast.LENGTH_LONG).show();
-                            })
-                            .addOnFailureListener(e -> {
-                                progress.dismiss();
-                                Toast.makeText(getActivity().getApplicationContext(), "Ошибка добавления", Toast.LENGTH_LONG).show();
-                            });
-                    dialog.dismiss();
+                    message = builder.toString();
+                    materialDialog.dismiss();
+                    presenter.sendTelegramMessage(progress, message);
                     fam.close(true);
                 }
             };
@@ -337,59 +366,162 @@ public class GroupInfoFragment extends BaseFragment implements GroupInfoFragment
         });
     }
 
-    public void setupRecyclerView(ArrayList<GroupInfoRecyclerAdapter.GroupInfoRecyclerItem> buttons){
-        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-        buttonsView.setLayoutManager(mLayoutManager);
-        buttonsView.setHasFixedSize(false);
+    @Override
+    public void setupActionsRecyclerView(String dataType) {
+        RecyclerView recyclerView = getRecyclerViewByType(dataType);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+        layoutManager.setAutoMeasureEnabled(true);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(false);
+        recyclerView.setNestedScrollingEnabled(false);
 
         if (App.INSTANCE.areAnimationsEnabled())
-            buttonsView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_bottom));
+            recyclerView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_bottom));
 
-        groupInfoAdapter = new GroupInfoRecyclerAdapter(getActivity(), instance, fragmentNavigation, buttons, chat.getId());
-
-        groupInfoAdapter.setMode(ExpandableRecyclerAdapter.MODE_ACCORDION);
-        buttonsView.setAdapter(groupInfoAdapter);
-        groupInfoAdapter.notifyDataSetChanged();
+        recyclerView.setAdapter(new ActionsRecyclerAdapter(getActivity(), new ArrayList<>()));
     }
 
-    public void setupRetryButton(){
-        retryBtn.setOnClickListener(view -> presenter.onRetryBtnClick());
-    }
-
-    public void handleActionsUpdate(DocumentChange.Type type, int newIndex, int oldIndex, Action action) {
-        if (groupInfoAdapter != null) {
+    @Override
+    public void handleDataUpdate(String dataType, DocumentChange.Type type, int newIndex, int oldIndex, Action action) {
+        ActionsRecyclerAdapter adapter = (ActionsRecyclerAdapter) getAdapterByRecyclerType(dataType);
+        if (adapter != null) {
             switch (type) {
                 case ADDED:
-                    groupInfoAdapter.addActionItem(newIndex, action);
+                    adapter.addItem(newIndex, action);
                     break;
                 case MODIFIED:
-                    //groupInfoAdapter.updateItem(oldIndex, newIndex, chat);
+                    adapter.updateItem(oldIndex, newIndex, action);
                     break;
                 case REMOVED:
-                    //groupInfoAdapter.removeItem(oldIndex);
+                    adapter.removeItem(oldIndex);
                     break;
             }
         }
     }
 
-    public void handleUsersUpdate(DocumentChange.Type type, int newIndex, int oldIndex, User user) {
+    @Override
+    public void addParticipants(ArrayList<User> participants) {
+        RecyclerView recyclerView = getRecyclerViewByType(Consts.TYPE_USER);
 
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+        layoutManager.setAutoMeasureEnabled(true);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(false);
+        recyclerView.setNestedScrollingEnabled(false);
+
+        if (App.INSTANCE.areAnimationsEnabled())
+            recyclerView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_animation_from_bottom));
+
+        recyclerView.setAdapter(new UsersRecyclerAdapter(getActivity(), participants));
     }
 
-    public void handleUIUpdate(Chat chat) {
-
+    @Override
+    public void setParticipantsCount(int count) {
+        participantsBtn.setText("Участников: " + count);
     }
 
-    public boolean isAdapterExists() {
-        return groupInfoAdapter != null;
+    @Override
+    public void hideGroupActions(boolean isInList) {
+        announcementsBtn.setVisibility(isInList ? View.VISIBLE : View.GONE);
+        pollsBtn.setVisibility(isInList ? View.VISIBLE : View.GONE);
+        articlesBtn.setVisibility(isInList ? View.VISIBLE : View.GONE);
+        fam.setVisibility(isInList ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void setupRetryButton() {
+        retryBtn.setOnClickListener(view -> presenter.onRetryBtnClick());
+    }
+
+    @Override
+    public boolean isOneOfTheAdaptersExists() {
+        return getAdapterByRecyclerType(Consts.TYPE_ANNOUNCEMENT) != null
+                || getAdapterByRecyclerType(Consts.TYPE_POLL) != null
+                || getAdapterByRecyclerType(Consts.TYPE_ARTICLE) != null
+                || getAdapterByRecyclerType(Consts.TYPE_USER) != null;
+    }
+
+    public void performExpansionByType(String dataType) {
+        ExpandableLayout expandableLayout = getExpandableLayoutByType(dataType);
+
+        if (expandableLayout != null) {
+            if (expandableLayout.isExpanded()) {
+                expandableLayout.collapse();
+            } else {
+                expandableLayout.expand();
+            }
+        }
+    }
+
+    private ExpandableLayout getExpandableLayoutByType(String dataType) {
+        switch (dataType) {
+            case Consts.TYPE_ANNOUNCEMENT:
+                return announcementsLayout;
+            case Consts.TYPE_POLL:
+                return pollsLayout;
+            case Consts.TYPE_ARTICLE:
+                return articlesLayout;
+            case Consts.TYPE_USER:
+                return participantsLayout;
+            default:
+                return null;
+        }
+    }
+
+    private RecyclerView.Adapter<?> getAdapterByRecyclerType(String dataType) {
+        switch (dataType) {
+            case Consts.TYPE_ANNOUNCEMENT:
+                return (ActionsRecyclerAdapter) announcementsRecycler.getAdapter();
+            case Consts.TYPE_POLL:
+                return (ActionsRecyclerAdapter) pollsRecycler.getAdapter();
+            case Consts.TYPE_ARTICLE:
+                return (ActionsRecyclerAdapter) articlesRecycler.getAdapter();
+            case Consts.TYPE_USER:
+                return (UsersRecyclerAdapter) participantsRecycler.getAdapter();
+            default:
+                return null;
+        }
+    }
+
+    private RecyclerView getRecyclerViewByType(String dataType) {
+        switch (dataType) {
+            case Consts.TYPE_ANNOUNCEMENT:
+                return announcementsRecycler;
+            case Consts.TYPE_POLL:
+                return pollsRecycler;
+            case Consts.TYPE_ARTICLE:
+                return articlesRecycler;
+            case Consts.TYPE_USER:
+                return participantsRecycler;
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_group_info, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.closeBtn:
+                getActivity().onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        groupInfoAdapter = null;
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.VISIBLE);
+        announcementsRecycler.setAdapter(null);
+        pollsRecycler.setAdapter(null);
+        articlesRecycler.setAdapter(null);
+        participantsRecycler.setAdapter(null);
         unbinder.unbind();
         presenter.destroy();
     }

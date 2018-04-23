@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView
-    android:id="@+id/announcementsView"
+    android:id="@+id/articlesView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="10dp"
@@ -19,13 +19,13 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorAnnouncement">
+            android:background="@color/colorArticle">
 
             <ImageView
                 android:id="@+id/articleIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_announcement_black_36dp"
+                android:src="@drawable/ic_format_align_left_black_24dp"
                 android:layout_margin="5dp"
                 android:alpha="200"/>
 
@@ -37,11 +37,11 @@
                 android:paddingLeft="10dp"
                 android:textColor="@color/black"
                 android:textSize="28sp"
-                android:text="Объявления"/>
+                android:text="Статьи"/>
         </RelativeLayout>
 
         <TextView
-            android:id="@+id/newAnnouncementsCount"
+            android:id="@+id/totalArticlesCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
@@ -49,20 +49,19 @@
             android:paddingTop="5dp"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:text="Новых: 10"/>
+            android:text="Всего: 10"/>
 
         <TextView
-            android:id="@+id/archiveAnnouncementsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
+            android:visibility="invisible"
             android:text="В архиве: 5"/>
 
         <TextView
-            android:id="@+id/totalAnnouncementsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
@@ -70,6 +69,7 @@
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
             android:paddingBottom="5dp"
+            android:visibility="invisible"
             android:text="Всего: 15"/>
 
     </LinearLayout>

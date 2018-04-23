@@ -3,16 +3,22 @@ package com.fa.grubot.fragments;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.fa.grubot.App;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.ChatFragmentBase;
@@ -22,12 +28,16 @@ import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.chat.ChatImageMessage;
 import com.fa.grubot.objects.chat.ChatMessage;
 import com.fa.grubot.objects.chat.MessagesListParcelable;
+import com.fa.grubot.objects.users.User;
 import com.fa.grubot.presenters.ChatPresenter;
 import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.ImageLoader;
+import com.github.badoualy.telegram.tl.api.TLInputPeerChannel;
+import com.github.badoualy.telegram.tl.api.TLInputPeerChat;
 import com.stfalcon.chatkit.messages.MessageHolders;
 import com.stfalcon.chatkit.messages.MessageInput;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
+import com.vk.sdk.VKAccessToken;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -89,7 +99,15 @@ public class ChatFragment extends Fragment
     @Override
     public void onResume() {
         presenter.notifyFragmentStarted(chat);
-        presenter.setUpdateCallback();
+        if (chat.getType().equals(Consts.Telegram)) {
+            presenter.setUpdateCallback();
+        } else if (chat.getType().equals(Consts.VK) && false){
+            presenter.setupPollingVk();
+        }
+        if (App.INSTANCE.getResendingMessage() != null){
+            presenter.sendMessage(App.INSTANCE.getResendingMessage());
+            App.INSTANCE.resetResendingMessage();
+        }
         super.onResume();
     }
 
@@ -129,7 +147,11 @@ public class ChatFragment extends Fragment
 
     @Override
     public void onLoadMore(int page, int totalItemsCount) {
-        presenter.loadMoreMessages(totalItemsCount);
+        if (chat.getType().equals(Consts.Telegram)) {
+            presenter.loadMoreMessages(totalItemsCount);
+        } else if (chat.getType().equals(Consts.Telegram)){
+            presenter.loadmoreVkMessages();
+        }
     }
 
     @Override
@@ -139,6 +161,14 @@ public class ChatFragment extends Fragment
                 return (message instanceof ChatImageMessage);
         }
         return false;
+    }
+
+    private void animateViewAppearance(View view) {
+        view.setAlpha(0.0f);
+        view.animate()
+                .translationY(view.getHeight())
+                .alpha(1.0f)
+                .setListener(null);
     }
 
     @Override
@@ -151,12 +181,15 @@ public class ChatFragment extends Fragment
         switch (state) {
             case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
+                animateViewAppearance(content);
                 break;
             case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
+                animateViewAppearance(noInternet);
                 break;
             case Consts.STATE_NO_DATA:
                 content.setVisibility(View.VISIBLE);
+                animateViewAppearance(content);
                 break;
         }
     }
@@ -188,7 +221,7 @@ public class ChatFragment extends Fragment
     }
 
     @Override
-    public void setupRecyclerView(ArrayList<ChatMessage> messages) {
+    public void setupRecyclerView(ArrayList<ChatMessage> messages, String type) {
         MessageHolders holdersConfig = new MessageHolders()
                 .setIncomingTextLayout(R.layout.item_incoming_text_message)
                 .setOutcomingTextLayout(R.layout.item_outcoming_text_message)
@@ -201,11 +234,50 @@ public class ChatFragment extends Fragment
 
         ImageLoader imageLoader = new ImageLoader(this);
 
-        messagesListAdapter = new MessagesListAdapter<>(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), holdersConfig, imageLoader);
+        String userId = "-1";
+        if (type.equals(Consts.VK)){
+            userId = VKAccessToken.currentToken().userId;
+        } else if (type.equals(Consts.Telegram)){
+            userId = String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId());
+        }
+
+        messagesListAdapter = new MessagesListAdapter<>(userId, holdersConfig, imageLoader);
+        messagesListAdapter.registerViewClickListener(R.id.messageUserAvatar, (view, message) -> showUserProfile((User) message.getUser()));
         messagesListAdapter.addToEnd(messages, false);
         messagesListAdapter.setLoadMoreListener(this);
+        messagesListAdapter.setOnMessageLongClickListener(message ->{
+            new MaterialDialog.Builder(this.getContext())
+                    .items("Переслать...", "Отмена")
+                    .itemsCallback(new MaterialDialog.ListCallback() {
+                        @Override
+                        public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                            if (which == 0){
+                                resendMessage(message.getText());
+                            }
+                        }
+                    })
+                    .show();
+        });
         messagesList.setAdapter(messagesListAdapter);
         messageInput.setInputListener(this);
+    }
+
+    private void resendMessage(CharSequence text) {
+        App.INSTANCE.setResendingMessage(text.toString());
+
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.replace(((ViewGroup)getView().getParent()).getId(), ChatsListFragment.newInstance(1));
+        ft.commitAllowingStateLoss();
+    }
+
+    private void showUserProfile(User user) {
+        Fragment profileItemFragment = ProfileItemFragment.newInstance(Integer.valueOf(user.getId()), user.getUserType(), user, Consts.PROFILE_MODE_SINGLE);
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+        transaction.addToBackStack(null);
+        transaction.add(R.id.content, profileItemFragment);
+        transaction.commit();
     }
 
     @Override
@@ -216,6 +288,18 @@ public class ChatFragment extends Fragment
         activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
         toolbar.bringToFront();
+
+        toolbar.setOnClickListener(v -> {
+            if (chat.getInputPeer() instanceof TLInputPeerChat || chat.getInputPeer() instanceof TLInputPeerChannel) {
+                Fragment groupInfoFragment = GroupInfoFragment.newInstance(0, chat);
+
+                FragmentManager fm = this.getActivity().getSupportFragmentManager();
+                FragmentTransaction transaction = fm.beginTransaction();
+                transaction.addToBackStack(null);
+                transaction.add(R.id.content, groupInfoFragment);
+                transaction.commit();
+            }
+        });
     }
 
     @Override
@@ -234,9 +318,13 @@ public class ChatFragment extends Fragment
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id) {
+        switch (item.getItemId()) {
             case android.R.id.home:
                 getActivity().onBackPressed();
                 break;

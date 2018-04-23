@@ -27,7 +27,7 @@ public class ActionsPagerAdapter extends FragmentPagerAdapter {
         if (type == ActionsFragment.TYPE_ANNOUNCEMENTS)
             args.putInt("type", ActionsFragment.TYPE_ANNOUNCEMENTS);
         else
-            args.putInt("type", ActionsFragment.TYPE_VOTES);
+            args.putInt("type", ActionsFragment.TYPE_POLLS);
         actionsFragment.setArguments(args);
         currentActions = actionsFragment;
 
@@ -37,7 +37,7 @@ public class ActionsPagerAdapter extends FragmentPagerAdapter {
         if (type == ActionsFragment.TYPE_ANNOUNCEMENTS)
             args1.putInt("type", ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE);
         else
-            args1.putInt("type", ActionsFragment.TYPE_VOTES_ARCHIVE);
+            args1.putInt("type", ActionsFragment.TYPE_POLLS_ARCHIVE);
         actionsArchiveFragment.setArguments(args1);
         archiveActions = actionsArchiveFragment;
     }

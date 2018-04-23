@@ -109,6 +109,14 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
         Icepick.saveInstanceState(this, outState);
     }
 
+    private void animateViewAppearance(View view) {
+        view.setAlpha(0.0f);
+        view.animate()
+                .translationY(view.getHeight())
+                .alpha(1.0f)
+                .setListener(null);
+    }
+
     public void showRequiredViews() {
         progressBar.setVisibility(View.GONE);
         noInternet.setVisibility(View.GONE);
@@ -118,12 +126,15 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
         switch (state) {
             case Consts.STATE_CONTENT:
                 content.setVisibility(View.VISIBLE);
+                animateViewAppearance(content);
                 break;
             case Consts.STATE_NO_INTERNET_CONNECTION:
                 noInternet.setVisibility(View.VISIBLE);
+                animateViewAppearance(noInternet);
                 break;
             case Consts.STATE_NO_DATA:
                 noData.setVisibility(View.VISIBLE);
+                animateViewAppearance(noData);
                 break;
         }
     }
@@ -145,12 +156,14 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
 
     public void setupToolbar() {
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.VISIBLE);
-        toolbar.setTitle("Чаты");
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+            toolbar.setTitle("Чаты");
 
-        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+            ((MainActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            ((MainActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+        }
     }
 
     public void setupRecyclerView(ArrayList<Chat> chats) {

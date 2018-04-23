@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements BaseFragment.Frag
             case TAB_SEARCH:
                 return new WorkInProgressFragment();
             case TAB_PROFILE:
-                return ProfileFragment.getInstanse();
+                return ProfileFragment.getInstance();
             case TAB_DASHBOARD:
                 return DashboardFragment.newInstance(0);
             case TAB_CHATS:

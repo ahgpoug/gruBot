@@ -34,6 +34,14 @@
             fab:fab_label="Объявление"
             style="@style/MenuButtonsStyle" />
 
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_add_article"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_format_align_left_white_24dp"
+            fab:fab_label="Статья"
+            style="@style/MenuButtonsStyle" />
+
     </com.github.clans.fab.FloatingActionMenu>
 
 </LinearLayout>

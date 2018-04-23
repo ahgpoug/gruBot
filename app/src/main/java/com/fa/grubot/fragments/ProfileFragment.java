@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
-import com.fa.grubot.adapters.PagerAdapter;
+import com.fa.grubot.adapters.ProfilePagerAdapter;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -31,7 +31,7 @@ public class ProfileFragment extends Fragment {
     @BindView(R.id.viewpager_profile)
     ViewPager viewPager;
 
-    private PagerAdapter mAdapter;
+    private ProfilePagerAdapter mAdapter;
 
     @Nullable
     @Override
@@ -43,7 +43,7 @@ public class ProfileFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText("Telegram"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        mAdapter = new com.fa.grubot.adapters.PagerAdapter(getChildFragmentManager(), tabLayout.getTabCount());
+        mAdapter = new ProfilePagerAdapter(getChildFragmentManager(), tabLayout.getTabCount());
 
         viewPager.setAdapter(mAdapter);
         viewPager.setOffscreenPageLimit(1);
@@ -76,7 +76,7 @@ public class ProfileFragment extends Fragment {
         ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
     }
 
-    public static ProfileFragment getInstanse() {
+    public static ProfileFragment getInstance() {
         return new ProfileFragment();
     }
 

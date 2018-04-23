@@ -21,6 +21,7 @@ public class Chat implements Serializable, Cloneable, Comparable<Chat> {
     private String type;
     private long lastMessageDate;
     private String lastMessageFrom;
+    private String chatId; // only for vk group dialogs
 
     private TLAbsInputPeer inputPeer;
 
@@ -145,5 +146,14 @@ public class Chat implements Serializable, Cloneable, Comparable<Chat> {
             return 0;
         }
 
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public Chat setChatId(String chatId) {
+        this.chatId = chatId;
+        return this;
     }
 }

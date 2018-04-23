@@ -6,8 +6,9 @@ import com.fa.grubot.abstractions.DashboardFragmentBase;
 import com.fa.grubot.fragments.ActionsFragment;
 import com.fa.grubot.models.DashboardModel;
 import com.fa.grubot.objects.dashboard.DashboardAnnouncement;
+import com.fa.grubot.objects.dashboard.DashboardArticle;
 import com.fa.grubot.objects.dashboard.DashboardItem;
-import com.fa.grubot.objects.dashboard.DashboardVote;
+import com.fa.grubot.objects.dashboard.DashboardPoll;
 import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -25,21 +26,25 @@ public class DashboardPresenter {
     private Query announcementsQuery;
     private Query votesQuery;
     private Query archiveVotesQuery;
+    private Query articlesQuery;
 
     private Query announcementsQueryVk;
     private Query archiveAnnouncementsQueryVk;
     private Query votesQueryVk;
     private Query archiveVotesQueryVk;
+    private Query articlesQueryVk;
 
     private ListenerRegistration announcementsRegistrationVk;
     private ListenerRegistration archiveAnnouncementsRegistrationVk;
     private ListenerRegistration votesRegistrationVk;
     private ListenerRegistration archiveVotesRegistrationVk;
+    private ListenerRegistration articlesRegistrationVk;
 
     private ListenerRegistration announcementsRegistration;
     private ListenerRegistration archiveAnnouncementsRegistration;
     private ListenerRegistration votesRegistration;
     private ListenerRegistration archiveVotesRegistration;
+    private ListenerRegistration articlesRegistration;
 
     public DashboardPresenter(DashboardFragmentBase fragment){
         this.fragment = fragment;
@@ -53,17 +58,17 @@ public class DashboardPresenter {
             archiveAnnouncementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
             announcementsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
             votesQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-            archiveVotesQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
+            archiveVotesQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), 0);
+            articlesQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
         }
 
         if (App.INSTANCE.getCurrentUser().hasVkUser()) {
             announcementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
             archiveAnnouncementsQueryVk = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "archive");
             votesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
-            archiveVotesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "archive");
+            archiveVotesQueryVk = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), 0);
+            articlesQueryVk = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getVkUser().getId(), "new");
         }
-
-
     }
 
     public void notifyFragmentStarted() {
@@ -83,7 +88,8 @@ public class DashboardPresenter {
             case Consts.STATE_CONTENT:
                 ArrayList<DashboardItem> items = new ArrayList<>(Arrays.asList(
                         new DashboardAnnouncement(0, 0),
-                        new DashboardVote(0, 0)));
+                        new DashboardPoll(0, 0),
+                        new DashboardArticle(0)));
 
                 fragment.setupRecyclerView(items);
                 break;
@@ -192,7 +198,7 @@ public class DashboardPresenter {
                             notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
-                        fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES);
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_POLLS);
                     }
                 }
             } else {
@@ -228,7 +234,43 @@ public class DashboardPresenter {
                             notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
-                        fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES_ARCHIVE);
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_POLLS_ARCHIVE);
+                    }
+                }
+            } else {
+                if (fragment != null) {
+                    fragment.setupLayouts(false);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
+                }
+            }
+        });
+
+        articlesRegistration = articlesQuery.addSnapshotListener((documentSnapshots, e) -> {
+            if (e == null) {
+                if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists())  {
+                    fragment.setupLayouts(true);
+                    notifyViewCreated(Consts.STATE_CONTENT);
+                }
+
+                for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
+                    int count = 0;
+
+                    switch (dc.getType()) {
+                        case ADDED:
+                            count++;
+                            break;
+                        case REMOVED:
+                            count--;
+                            break;
+                    }
+
+                    if (fragment != null) {
+                        if (!fragment.isAdapterExists()) {
+                            fragment.setupLayouts(true);
+                            notifyViewCreated(Consts.STATE_CONTENT);
+                        }
+
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_ARTICLES);
                     }
                 }
             } else {
@@ -338,7 +380,7 @@ public class DashboardPresenter {
                             notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
-                        fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES);
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_POLLS);
                     }
                 }
             } else {
@@ -374,7 +416,43 @@ public class DashboardPresenter {
                             notifyViewCreated(Consts.STATE_CONTENT);
                         }
 
-                        fragment.handleListUpdate(count, ActionsFragment.TYPE_VOTES_ARCHIVE);
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_POLLS_ARCHIVE);
+                    }
+                }
+            } else {
+                if (fragment != null) {
+                    fragment.setupLayouts(false);
+                    notifyViewCreated(Consts.STATE_NO_INTERNET_CONNECTION);
+                }
+            }
+        });
+
+        articlesRegistrationVk = articlesQueryVk.addSnapshotListener((documentSnapshots, e) -> {
+            if (e == null) {
+                if (fragment != null && documentSnapshots.isEmpty() && !fragment.isAdapterExists()) {
+                    fragment.setupLayouts(true);
+                    notifyViewCreated(Consts.STATE_CONTENT);
+                }
+
+                for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
+                    int count = 0;
+
+                    switch (dc.getType()) {
+                        case ADDED:
+                            count++;
+                            break;
+                        case REMOVED:
+                            count--;
+                            break;
+                    }
+
+                    if (fragment != null) {
+                        if (!fragment.isAdapterExists()) {
+                            fragment.setupLayouts(true);
+                            notifyViewCreated(Consts.STATE_CONTENT);
+                        }
+
+                        fragment.handleListUpdate(count, ActionsFragment.TYPE_ARTICLES);
                     }
                 }
             } else {
@@ -400,6 +478,9 @@ public class DashboardPresenter {
             votesRegistration.remove();
         if (archiveVotesRegistration != null)
             archiveVotesRegistration.remove();
+        if (articlesRegistration != null)
+            articlesRegistration.remove();
+
         if (announcementsRegistrationVk != null)
             announcementsRegistrationVk.remove();
         if (archiveAnnouncementsRegistrationVk != null)
@@ -408,6 +489,8 @@ public class DashboardPresenter {
             votesRegistrationVk.remove();
         if (archiveVotesRegistrationVk != null)
             archiveVotesRegistrationVk.remove();
+        if (articlesRegistrationVk != null)
+            articlesRegistrationVk.remove();
     }
 
     public void destroy() {

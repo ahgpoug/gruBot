@@ -7,7 +7,8 @@ import com.fa.grubot.fragments.ActionsFragment;
 import com.fa.grubot.models.ActionsModel;
 import com.fa.grubot.objects.dashboard.Action;
 import com.fa.grubot.objects.dashboard.ActionAnnouncement;
-import com.fa.grubot.objects.dashboard.ActionVote;
+import com.fa.grubot.objects.dashboard.ActionArticle;
+import com.fa.grubot.objects.dashboard.ActionPoll;
 import com.fa.grubot.objects.misc.VoteOption;
 import com.fa.grubot.util.Consts;
 import com.google.firebase.firestore.DocumentChange;
@@ -18,7 +19,10 @@ import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ActionsPresenter {
     private ActionsFragmentBase fragment;
@@ -28,12 +32,16 @@ public class ActionsPresenter {
     private Query actionsQuery;
     private ListenerRegistration actionsRegistration;
 
+    private int type;
+
     public ActionsPresenter(ActionsFragmentBase fragment){
         this.fragment = fragment;
         this.model = new ActionsModel();
     }
 
     public void notifyFragmentStarted(int type) {
+        this.type = type;
+
         switch (type) {
             case ActionsFragment.TYPE_ANNOUNCEMENTS:
                 actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
@@ -41,11 +49,14 @@ public class ActionsPresenter {
             case ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE:
                 actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
                 break;
-            case ActionsFragment.TYPE_VOTES:
+            case ActionsFragment.TYPE_POLLS:
                 actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
                 break;
-            case ActionsFragment.TYPE_VOTES_ARCHIVE:
-                actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
+            case ActionsFragment.TYPE_POLLS_ARCHIVE:
+                actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), 0);
+                break;
+            case ActionsFragment.TYPE_ARTICLES:
+                actionsQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
                 break;
         }
 
@@ -57,6 +68,8 @@ public class ActionsPresenter {
 
         switch (state) {
             case Consts.STATE_CONTENT:
+                if (type == ActionsFragment.TYPE_ARTICLES)
+                    fragment.setupToolbar();
                 fragment.setupRecyclerView(actions);
                 break;
             case Consts.STATE_NO_INTERNET_CONNECTION:
@@ -74,41 +87,71 @@ public class ActionsPresenter {
                 for (DocumentChange dc : documentSnapshots.getDocumentChanges()) {
                     DocumentSnapshot doc = dc.getDocument();
                     Action action;
-                    if (type == ActionsFragment.TYPE_ANNOUNCEMENTS || type == ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE) {
-                        action = new ActionAnnouncement(
-                                        doc.getId(),
-                                        doc.get("group").toString(),
-                                        doc.get("groupName").toString(),
-                                        doc.get("author").toString(),
-                                        doc.get("authorName").toString(),
-                                        doc.get("desc").toString(),
-                                        (Date) doc.get("date"),
-                                        doc.get("text").toString(),
-                                        (Map<String, String>) doc.get("users"));
-                    } else {
-                        ArrayList<VoteOption> voteOptions = new ArrayList<>();
-                        for (Map.Entry<String, String> option : ((Map<String, String>) doc.get("voteOptions")).entrySet())
-                            voteOptions.add(new VoteOption(option.getValue()));
+                    try {
+                        if (type == ActionsFragment.TYPE_ANNOUNCEMENTS || type == ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE) {
+                            action = new ActionAnnouncement(
+                                    doc.getId(),
+                                    doc.get("group").toString(),
+                                    doc.get("groupName").toString(),
+                                    doc.get("author").toString(),
+                                    doc.get("authorName").toString(),
+                                    doc.get("desc").toString(),
+                                    (Date) doc.get("date"),
+                                    doc.get("text").toString(),
+                                    (Map<String, String>) doc.get("users"),
+                                    (long) doc.get("messageId"),
+                                    doc.get("type").toString());
+                        } else if (type == ActionsFragment.TYPE_ARTICLES) {
+                            action = new ActionArticle(
+                                    doc.getId(),
+                                    doc.get("group").toString(),
+                                    doc.get("groupName").toString(),
+                                    doc.get("author").toString(),
+                                    doc.get("authorName").toString(),
+                                    doc.get("desc").toString(),
+                                    (Date) doc.get("date"),
+                                    doc.get("text").toString(),
+                                    (Map<String, String>) doc.get("users"),
+                                    (long) doc.get("messageId"),
+                                    doc.get("type").toString());
 
-                        action = new ActionVote(
-                                        doc.getId(),
-                                        doc.get("group").toString(),
-                                        doc.get("groupName").toString(),
-                                        doc.get("author").toString(),
-                                        doc.get("authorName").toString(),
-                                        doc.get("desc").toString(),
-                                        (Date) doc.get("date"),
-                                        voteOptions,
-                                        (Map<String, String>) doc.get("users"));
-                    }
+                        } else if (type == ActionsFragment.TYPE_POLLS || type == ActionsFragment.TYPE_POLLS_ARCHIVE) {
+                            ArrayList<VoteOption> voteOptions = new ArrayList<>();
+                            HashMap<String, String> options = (HashMap<String, String>) doc.get("voteOptions");
+                            SortedSet<String> keys = new TreeSet<>(options.keySet());
 
-                    if (fragment != null) {
-                        if (!fragment.isAdapterExists() && fragment.isListEmpty()) {
-                            fragment.setupLayouts(true, true);
-                            notifyViewCreated(Consts.STATE_CONTENT);
+                            for (String key : keys) {
+                                voteOptions.add(new VoteOption(options.get(key)));
+                            }
+
+                            action = new ActionPoll(
+                                    doc.getId(),
+                                    doc.get("group").toString(),
+                                    doc.get("groupName").toString(),
+                                    doc.get("author").toString(),
+                                    doc.get("authorName").toString(),
+                                    doc.get("desc").toString(),
+                                    (Date) doc.get("date"),
+                                    voteOptions,
+                                    (Map<String, String>) doc.get("users"),
+                                    (long) doc.get("messageId"),
+                                    doc.get("type").toString());
+                        } else {
+                            action = null;
                         }
 
-                        fragment.handleListUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), action);
+
+                        if (fragment != null) {
+                            if (!fragment.isAdapterExists() && fragment.isListEmpty()) {
+                                fragment.setupLayouts(true, true);
+                                notifyViewCreated(Consts.STATE_CONTENT);
+                            }
+
+                            fragment.handleListUpdate(dc.getType(), dc.getNewIndex(), dc.getOldIndex(), action);
+                        }
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
                 }
 
@@ -129,7 +172,7 @@ public class ActionsPresenter {
         if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
             addAnnouncementToArchive((ActionAnnouncement) action);
         } else  {
-            addVoteToArchive((ActionVote) action);
+            addVoteToArchive((ActionPoll) action);
         }
     }
 
@@ -154,14 +197,14 @@ public class ActionsPresenter {
     }
 
     @SuppressWarnings("unchecked")
-    private void addVoteToArchive(ActionVote vote) {
+    private void addVoteToArchive(ActionPoll vote) {
         FirebaseFirestore.getInstance().collection("votes")
                 .document(vote.getId())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     Map<String, String> users = (Map<String, String>) documentSnapshot.get("users");
 
-                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "archive");
+                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "-1");
 
                     FirebaseFirestore.getInstance().collection("votes")
                             .document(vote.getId())
@@ -177,7 +220,7 @@ public class ActionsPresenter {
         if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
             restoreAnnouncementFromArchive((ActionAnnouncement) action);
         } else {
-            restoreVoteFromArchive((ActionVote) action);
+            restorePollFromArchive((ActionPoll) action);
         }
     }
 
@@ -198,7 +241,7 @@ public class ActionsPresenter {
     }
 
     @SuppressWarnings("unchecked")
-    private void restoreVoteFromArchive(ActionVote vote) {
+    private void restorePollFromArchive(ActionPoll vote) {
         FirebaseFirestore.getInstance().collection("votes")
                 .document(vote.getId())
                 .get()

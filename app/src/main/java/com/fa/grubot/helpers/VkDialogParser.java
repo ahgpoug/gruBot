@@ -83,6 +83,11 @@ public class VkDialogParser {
                     isGroupDialog,
                     messagesArrayJson.getJSONObject(i).getJSONObject("message").getString("out")
                     ); //TODO may be combained into batch request
+
+            if (chat.isGroupDialog()){
+                chat.setChatId(messagesArrayJson.getJSONObject(i).getJSONObject("message").getString("chat_id"));
+            }
+
             parsedChats.add(chat);
         }
 

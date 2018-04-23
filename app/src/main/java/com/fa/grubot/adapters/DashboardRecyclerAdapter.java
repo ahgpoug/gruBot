@@ -14,8 +14,9 @@ import com.fa.grubot.fragments.ActionsFragment;
 import com.fa.grubot.fragments.ActionsTabFragment;
 import com.fa.grubot.fragments.BaseFragment;
 import com.fa.grubot.objects.dashboard.DashboardAnnouncement;
+import com.fa.grubot.objects.dashboard.DashboardArticle;
 import com.fa.grubot.objects.dashboard.DashboardItem;
-import com.fa.grubot.objects.dashboard.DashboardVote;
+import com.fa.grubot.objects.dashboard.DashboardPoll;
 
 import java.util.ArrayList;
 
@@ -25,7 +26,8 @@ import butterknife.ButterKnife;
 public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     private static final int TYPE_ANNOUNCEMENT = 796;
-    private static final int TYPE_VOTE = 468;
+    private static final int TYPE_POLL = 468;
+    private static final int TYPE_ARTICLE = 4698;
 
     private Context context;
     private int instance;
@@ -58,18 +60,35 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
 
-    class VoteViewHolder extends RecyclerView.ViewHolder {
+    class PollViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.newVotesCount) TextView newVotesCount;
         @BindView(R.id.archiveVotesCount) TextView archiveVotesCount;
         @BindView(R.id.totalVotesCount) TextView totalVotesCount;
         @BindView(R.id.votesView) CardView votesView;
 
-        private VoteViewHolder(View view) {
+        private PollViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
 
             votesView.setOnClickListener(view1 -> {
-                fragmentNavigation.pushFragment(ActionsTabFragment.newInstance(instance + 1, ActionsFragment.TYPE_VOTES));
+                if (App.INSTANCE.isBackstackEnabled())
+                    fragmentNavigation.pushFragment(ActionsTabFragment.newInstance(instance + 1, ActionsFragment.TYPE_POLLS));
+                else
+                    fragmentNavigation.pushFragment(ActionsTabFragment.newInstance(0, ActionsFragment.TYPE_POLLS));
+            });
+        }
+    }
+
+    class ArticleViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.totalArticlesCount) TextView totalArticlesCount;
+        @BindView(R.id.articlesView) CardView articlesView;
+
+        private ArticleViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
+
+            articlesView.setOnClickListener(view1 -> {
+                fragmentNavigation.pushFragment(ActionsFragment.newInstance(ActionsFragment.TYPE_ARTICLES));
             });
         }
     }
@@ -79,8 +98,10 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
         switch (viewType) {
             case TYPE_ANNOUNCEMENT:
                 return (new AnnouncementViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dashboard_announcement, parent, false)));
-            case TYPE_VOTE:
-                return (new VoteViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dashboard_vote, parent, false)));
+            case TYPE_POLL:
+                return (new PollViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dashboard_vote, parent, false)));
+            case TYPE_ARTICLE:
+                return (new ArticleViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dashboard_article, parent, false)));
         }
         return null;
     }
@@ -97,12 +118,17 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                 announcementViewHolder.archiveAnnouncementsCount.setText("В архиве: " + announcement.getArchiveCount());
                 announcementViewHolder.totalAnnouncementsCount.setText("Всего: " + announcement.getTotalCount());
                 break;
-            case TYPE_VOTE:
-                VoteViewHolder voteViewHolder = (VoteViewHolder) holder;
-                DashboardVote vote = (DashboardVote) item;
-                voteViewHolder.newVotesCount.setText("Новых: " + vote.getNewCount());
-                voteViewHolder.archiveVotesCount.setText("В архиве: " + vote.getArchiveCount());
-                voteViewHolder.totalVotesCount.setText("Всего: " + vote.getTotalCount());
+            case TYPE_POLL:
+                PollViewHolder pollViewHolder = (PollViewHolder) holder;
+                DashboardPoll vote = (DashboardPoll) item;
+                pollViewHolder.newVotesCount.setText("Новых: " + vote.getNewCount());
+                pollViewHolder.archiveVotesCount.setText("В архиве: " + vote.getArchiveCount());
+                pollViewHolder.totalVotesCount.setText("Всего: " + vote.getTotalCount());
+                break;
+            case TYPE_ARTICLE:
+                ArticleViewHolder articleViewHolder = (ArticleViewHolder) holder;
+                DashboardArticle article = (DashboardArticle) item;
+                articleViewHolder.totalArticlesCount.setText("Всего: " + article.getTotalCount());
                 break;
         }
     }
@@ -117,13 +143,17 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                 items.get(0).updateArchiveCount(count);
                 notifyItemChanged(0);
                 break;
-            case ActionsFragment.TYPE_VOTES:
+            case ActionsFragment.TYPE_POLLS:
                 items.get(1).updateNewCount(count);
                 notifyItemChanged(1);
                 break;
-            case ActionsFragment.TYPE_VOTES_ARCHIVE:
+            case ActionsFragment.TYPE_POLLS_ARCHIVE:
                 items.get(1).updateArchiveCount(count);
                 notifyItemChanged(1);
+                break;
+            case ActionsFragment.TYPE_ARTICLES:
+                items.get(2).updateNewCount(count);
+                notifyItemChanged(2);
                 break;
         }
     }
@@ -133,8 +163,12 @@ public class DashboardRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
         DashboardItem item = items.get(position);
         if (item instanceof DashboardAnnouncement)
             return TYPE_ANNOUNCEMENT;
+        else if (item instanceof DashboardPoll)
+            return TYPE_POLL;
+        else if (item instanceof DashboardArticle)
+            return TYPE_ARTICLE;
         else
-            return TYPE_VOTE;
+            return -1;
     }
 
     @Override

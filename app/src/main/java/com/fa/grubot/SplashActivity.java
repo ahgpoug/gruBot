@@ -109,7 +109,7 @@ public class SplashActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Object result) {
-            if (result instanceof Exception) {
+            if (result instanceof RpcErrorException) {
                 Toast.makeText(context.get(), ((RpcErrorException) result).getTag(), Toast.LENGTH_SHORT).show();
                 setTlUser(null);
             } else {

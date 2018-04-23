@@ -1,17 +1,184 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/tools"
     android:background="@color/background_material_light">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:overScrollMode="never">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            card_view:cardCornerRadius="0dp">
+
+            <TextView
+                android:id="@+id/participantsBtn"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/waPrimary"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Участники" />
+
+        </android.support.v7.widget.CardView>
+
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/participantsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:el_duration="500"
+            app:el_expanded="false"
+            app:el_parallax="0.5">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/participantsRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                android:overScrollMode="never">
+            </android.support.v7.widget.RecyclerView>
+
+        </net.cachapa.expandablelayout.ExpandableLayout>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            card_view:cardCornerRadius="0dp">
+
+            <TextView
+                android:id="@+id/announcementsBtn"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/waPrimary"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Объявления" />
+
+        </android.support.v7.widget.CardView>
+
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/announcementsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:el_duration="500"
+            app:el_expanded="false"
+            app:el_parallax="0.5">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/announcementsRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                android:overScrollMode="never">
+            </android.support.v7.widget.RecyclerView>
+
+        </net.cachapa.expandablelayout.ExpandableLayout>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            card_view:cardCornerRadius="0dp">
+
+            <TextView
+                android:id="@+id/pollsBtn"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/waPrimary"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Голосования" />
+
+        </android.support.v7.widget.CardView>
+
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/pollsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:el_duration="500"
+            app:el_expanded="false"
+            app:el_parallax="0.5">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/pollsRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                android:overScrollMode="never">
+            </android.support.v7.widget.RecyclerView>
+
+        </net.cachapa.expandablelayout.ExpandableLayout>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            card_view:cardCornerRadius="0dp">
+
+            <TextView
+                android:id="@+id/articlesBtn"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/waPrimary"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Статьи" />
+
+        </android.support.v7.widget.CardView>
+
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/articlesLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:el_duration="500"
+            app:el_expanded="false"
+            app:el_parallax="0.5">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/articlesRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                android:overScrollMode="never">
+            </android.support.v7.widget.RecyclerView>
+
+        </net.cachapa.expandablelayout.ExpandableLayout>
+
+    </LinearLayout>
+
+</android.support.v4.widget.NestedScrollView>

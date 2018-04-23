@@ -1,5 +1,6 @@
 package com.fa.grubot.fragments;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -162,6 +163,8 @@ public class DashboardFragment extends BaseFragment implements DashboardFragment
     public boolean isAdapterExists() {
         return dashboardAdapter != null;
     }
+
+
 
     @Override
     public void onDestroyView() {
