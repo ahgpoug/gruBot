@@ -39,7 +39,6 @@ import com.github.badoualy.telegram.tl.api.TLChatPhoto;
 import com.github.badoualy.telegram.tl.api.TLInputPeerChannel;
 import com.github.badoualy.telegram.tl.api.TLInputPeerChat;
 import com.github.badoualy.telegram.tl.api.TLInputPeerEmpty;
-import com.github.badoualy.telegram.tl.api.TLInputPeerSelf;
 import com.github.badoualy.telegram.tl.api.TLInputPeerUser;
 import com.github.badoualy.telegram.tl.api.TLInputUser;
 import com.github.badoualy.telegram.tl.api.TLMessageActionChannelCreate;
@@ -72,6 +71,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.fa.grubot.helpers.TelegramHelper.Chats.getUserImgUri;
 import static java.lang.String.format;
 
 public class TelegramHelper {
@@ -118,6 +118,28 @@ public class TelegramHelper {
             TLRequestUsersGetFullUser requestUsersGetFullUser = new TLRequestUsersGetFullUser(user);
 
             return telegramClient.executeRpcQuery(requestUsersGetFullUser);
+        }
+
+        public static User getChatUserFromInput(TelegramClient telegramClient, Context context, TLAbsInputUser inputUser) throws Exception {
+            TLRequestUsersGetFullUser requestUsersGetFullUser = new TLRequestUsersGetFullUser(inputUser);
+
+            TLUser tlUser = telegramClient.executeRpcQuery(requestUsersGetFullUser).getUser().getAsUser();
+
+            int userId = tlUser.getId();
+            String fullname = TelegramHelper.Users.extractName(tlUser);
+            String userName = tlUser.getUsername();
+            String phoneNumber = tlUser.getPhone();
+
+            String imgUri = getUserImgUri(telegramClient, tlUser, context);
+            if (imgUri == null)
+                imgUri = fullname;
+
+            User user = new User(String.valueOf(userId), Consts.Telegram, fullname, userName, imgUri);
+            user.setInputUser(new TLInputUser(tlUser.getId(), tlUser.getAccessHash()));
+            user.setAbsUser(tlUser);
+            user.setPhoneNumber(phoneNumber);
+
+            return user;
         }
 
         public static String extractName(TLUser tlUser) {

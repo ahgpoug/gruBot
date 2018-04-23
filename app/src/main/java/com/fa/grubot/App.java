@@ -4,6 +4,8 @@ import android.app.Application;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.fa.grubot.objects.TelegramMessenger;
+import com.fa.grubot.objects.VkMessenger;
 import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.util.CustomExceptionHandler;
 import com.fa.grubot.util.TmApiStorage;
@@ -29,8 +31,8 @@ public class App extends Application {
     private TelegramClient telegramClient;
     private CurrentUser currentUser;
 
-    private static final int API_ID =;
-    private static final String API_HASH =;
+    private static final int API_ID = ;
+    private static final String API_HASH = "";
 
     private static final String APP_VERSION = "1.0";
     private static final String MODEL = "Dev";
@@ -40,6 +42,9 @@ public class App extends Application {
     private File authKeyFile;
     private File nearestDcFile;
     private File vkAccessTokenFile;
+
+    public TelegramMessenger telegramMessenger;
+    public VkMessenger vkMessenger;
 
     private String resendingMessage;
 
@@ -61,6 +66,8 @@ public class App extends Application {
         super.onCreate();
 
         currentUser = new CurrentUser(null, null);
+        this.telegramMessenger = new TelegramMessenger(getApplicationContext());
+        this.vkMessenger = new VkMessenger(getApplicationContext());
 
         authKeyFile = new File(this.getApplicationContext().getFilesDir(), "auth.key");
         nearestDcFile = new File(this.getApplicationContext().getFilesDir(), "dc.save");

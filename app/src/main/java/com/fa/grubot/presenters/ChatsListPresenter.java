@@ -34,7 +34,6 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
     private Context context;
 
     private TelegramEventCallback.TelegramEventListener telegramEventListener;
-    private ChatsListPresenter presenter = this;
     private TelegramClient client;
 
     private ArrayList<Chat> chats = new ArrayList<>();
@@ -43,7 +42,7 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
 
     private Observable<List<Chat>> tListObservable;
 
-    private boolean callbackInited = false;
+    private boolean callbackInitialized = false;
 
     public ChatsListPresenter(ChatsListFragmentBase fragment, Context context) {
         this.fragment = fragment;
@@ -55,34 +54,33 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
         fragment.setupToolbar();
 
         if (Globals.InternetMethods.isNetworkAvailable(context)) {
-            if (App.INSTANCE.getCurrentUser().hasTelegramUser())
-                model.sendChatsListRequest(context, presenter);
+            if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
+                tListObservable = model.sendChatsListRequest();
+            } else {
+                tListObservable = Observable.just(new ArrayList<>());
+            }
 
-            if (App.INSTANCE.getCurrentUser().hasVkUser())
-                model.sendVkChatListRequest(this);
+            if (App.INSTANCE.getCurrentUser().hasVkUser()) {
+                vkListObservable = model.sendVkChatListRequest();
+            } else {
+                vkListObservable = Observable.just(new ArrayList<>());
+            }
         } else {
             notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
         }
 
-        if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
-            tListObservable = model.sendChatsListRequest(context, presenter);
-        } else {
-            tListObservable = Observable.just(new ArrayList<>());
-        }
+        requestChatsList();
+    }
 
-        if (App.INSTANCE.getCurrentUser().hasVkUser()) {
-            vkListObservable = model.sendVkChatListRequest(this);
-        } else {
-            vkListObservable = Observable.just(new ArrayList<>());
-        }
-
-        Observable.combineLatest(vkListObservable, tListObservable, (v, t) -> {
-            List<Chat> megaChat = new ArrayList<>();
-            if (v != null) megaChat.addAll(v);
-            if (t != null) megaChat.addAll(t);
-            Collections.sort(megaChat);
-            return megaChat;
-        })
+    private void requestChatsList() {
+        Observable
+                .combineLatest(vkListObservable, tListObservable, (v, t) -> {
+                    List<Chat> megaChat = new ArrayList<>();
+                    if (v != null) megaChat.addAll(v);
+                    if (t != null) megaChat.addAll(t);
+                    Collections.sort(megaChat);
+                    return megaChat;
+                })
                 .subscribeOn(io.reactivex.schedulers.Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(combinedChat -> onChatsListResult(new ArrayList<>(combinedChat), false));
@@ -125,8 +123,8 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
     }
 
     public void setUpdateCallback() {
-        if (!callbackInited) {
-            callbackInited = true;
+        if (!callbackInitialized) {
+            callbackInitialized = true;
             AsyncTask.execute(() -> {
                 try {
                     Thread.sleep(3000); //todo dirty little hack
@@ -168,12 +166,12 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
     @Override
     public void onFloodException() {
         if (Globals.InternetMethods.isNetworkAvailable(context))
-            model.sendChatsListRequest(context, presenter);
+            requestChatsList();
     }
 
     public void onRetryBtnClick() {
         if (Globals.InternetMethods.isNetworkAvailable(context))
-            model.sendChatsListRequest(context, presenter);
+            requestChatsList();
     }
 
     public void destroy() {

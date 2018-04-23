@@ -23,6 +23,7 @@ android {
     lintOptions {
         disable 'RestrictedApi'
         disable 'PrivateResource'
+        disable 'CheckResult'
     }
 
     compileOptions {
