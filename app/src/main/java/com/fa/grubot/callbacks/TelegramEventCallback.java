@@ -88,7 +88,7 @@ public class TelegramEventCallback implements UpdateCallback {
         Log.d("debug", "TLUpdateShortChatMessage called");
         String fromName = null;
 
-        if (shortChatMessage.getFromId() != App.INSTANCE.getCurrentUser().getTelegramUser().getId()) {
+        if (shortChatMessage.getFromId() != App.INSTANCE.telegramMessenger.getCurrentUser().getIntId()) {
             try {
                 TLUser user = TelegramHelper.Users.getUser(client, shortChatMessage.getFromId()).getUser().getAsUser();
                 fromName = user.getFirstName();
@@ -119,7 +119,7 @@ public class TelegramEventCallback implements UpdateCallback {
 
         if (shortMessage.getOut()) {
             fromName = "Вы";
-            fromId = App.INSTANCE.getCurrentUser().getTelegramUser().getId();
+            fromId = App.INSTANCE.telegramMessenger.getCurrentUser().getIntId();
         } else {
             fromId = shortMessage.getUserId();
         }
@@ -165,7 +165,7 @@ public class TelegramEventCallback implements UpdateCallback {
                     messageToId = peerChat.getChannelId();
                 }
 
-                if (tlMessage.getFromId() != App.INSTANCE.getCurrentUser().getTelegramUser().getId()) {
+                if (tlMessage.getFromId() != App.INSTANCE.telegramMessenger.getCurrentUser().getIntId()) {
                     try {
                         TLUser user = TelegramHelper.Users.getUser(client, tlMessage.getFromId()).getUser().getAsUser();
                         fromName = user.getFirstName();
@@ -207,7 +207,7 @@ public class TelegramEventCallback implements UpdateCallback {
                 }
 
 
-                if (tlMessage.getFromId() != App.INSTANCE.getCurrentUser().getTelegramUser().getId()) {
+                if (tlMessage.getFromId() != App.INSTANCE.telegramMessenger.getCurrentUser().getIntId()) {
                     try {
                         TLUser user = TelegramHelper.Users.getUser(client, tlMessage.getFromId()).getUser().getAsUser();
                         fromName = user.getFirstName();

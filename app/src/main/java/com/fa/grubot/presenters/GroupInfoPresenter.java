@@ -110,7 +110,7 @@ public class GroupInfoPresenter {
             }
 
             fragment.hideGroupActions(isInList);
-            if (App.INSTANCE.getCurrentUser().hasTelegramUser())
+            if (App.INSTANCE.vkMessenger.isHasUser())
                 getTelegramParticipants(isInList);
         });
     }

@@ -124,8 +124,8 @@ public class ProfileItemFragment extends Fragment implements ProfileItemFragment
     }
 
     private boolean checkIfCurrentTypeLoginned() {
-        if ((userType.equals(Consts.VK) && !App.INSTANCE.getCurrentUser().hasVkUser()) ||
-                (userType.equals(Consts.Telegram) && !App.INSTANCE.getCurrentUser().hasTelegramUser())){
+        if ((userType.equals(Consts.VK) && !App.INSTANCE.vkMessenger.isHasUser()) ||
+                (userType.equals(Consts.Telegram) && !App.INSTANCE.telegramMessenger.isHasUser())){
             showNotLoggedInMessage();
             return false;
         }
@@ -185,7 +185,7 @@ public class ProfileItemFragment extends Fragment implements ProfileItemFragment
             ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(user.getFullname());
 
         mSendMessageButton.setOnClickListener(v -> {
-            Observable.defer(() -> Observable.just(TelegramHelper.Chats.getChat(App.INSTANCE.getNewTelegramClient(null), getActivity(), user, userId)))
+            Observable.defer(() -> Observable.just(TelegramHelper.Chats.getChat(App.INSTANCE.telegramMessenger.getDownloaderClient(), getActivity(), user, userId)))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnNext(chat -> {

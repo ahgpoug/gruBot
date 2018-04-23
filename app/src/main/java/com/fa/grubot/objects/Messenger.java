@@ -27,7 +27,7 @@ public abstract class Messenger {
         return currentUser != null;
     }
 
-    public void setChatUser(User user) {
+    public void setCurrentUser(User user) {
         this.currentUser = user;
     }
 

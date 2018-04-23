@@ -75,7 +75,7 @@ public class ProfileModel {
     }
 
     public User askForTelegramUserInfo(int userId, Context context) throws Exception {
-        TelegramClient client = App.INSTANCE.getNewDownloaderClient();
+        TelegramClient client = App.INSTANCE.telegramMessenger.getDownloaderClient();
 
         User telegramUser;
         try {

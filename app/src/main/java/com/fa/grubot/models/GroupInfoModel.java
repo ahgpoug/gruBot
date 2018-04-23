@@ -30,7 +30,7 @@ public class GroupInfoModel {
     public Object getChatParticipants(Chat chat, Context context) {
         Object returnObject = 0;
 
-        TelegramClient client = App.INSTANCE.getNewDownloaderClient();
+        TelegramClient client = App.INSTANCE.telegramMessenger.getDownloaderClient();
         int chatId = Integer.valueOf(chat.getId());
 
         try {
@@ -83,7 +83,7 @@ public class GroupInfoModel {
 
     public boolean sendMessage(Chat chat, String message) {
         boolean isSent = false;
-        TelegramClient client = App.INSTANCE.getNewDownloaderClient().getDownloaderClient();
+        TelegramClient client = App.INSTANCE.telegramMessenger.getDownloaderClient();
         try {
             client.messagesSendMessage(chat.getInputPeer(), message, Math.abs(new Random().nextLong()));
             isSent = true;

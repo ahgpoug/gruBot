@@ -7,8 +7,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.fa.grubot.objects.TelegramMessenger;
-import com.fa.grubot.objects.VkMessenger;
 import com.fa.grubot.objects.misc.AuthObject;
 import com.fa.grubot.util.Globals;
 
@@ -43,19 +41,16 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        App.INSTANCE.closeTelegramClient();
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        App.INSTANCE.closeTelegramClient();
         super.onPause();
     }
 
     @Override
     protected void onStop() {
-        App.INSTANCE.closeTelegramClient();
         super.onStop();
     }
 

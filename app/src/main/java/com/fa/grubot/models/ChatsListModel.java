@@ -26,7 +26,7 @@ public class ChatsListModel {
         int index = -1;
         int idToFind;
 
-        if (event.getToId() == App.INSTANCE.getCurrentUser().getTelegramUser().getId())
+        if (event.getToId() == App.INSTANCE.telegramMessenger.getCurrentUser().getIntId())
             idToFind = event.getFromId();
         else
             idToFind = event.getToId();

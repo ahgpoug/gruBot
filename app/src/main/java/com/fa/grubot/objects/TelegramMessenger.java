@@ -4,12 +4,10 @@ import android.content.Context;
 import android.util.Log;
 import android.util.SparseArray;
 
-import com.fa.grubot.App;
 import com.fa.grubot.helpers.TelegramHelper;
 import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.chat.ChatMessage;
 import com.fa.grubot.objects.misc.TelegramPhoto;
-import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.TmApiStorage;
@@ -36,12 +34,11 @@ import com.github.badoualy.telegram.tl.api.messages.TLAbsDialogs;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 
 public class TelegramMessenger extends Messenger {
-    private static final int API_ID = ;
+    private static final int API_ID = 0;
     private static final String API_HASH = "";
 
     private static final String APP_VERSION = "1.0";
@@ -63,7 +60,7 @@ public class TelegramMessenger extends Messenger {
         application = new TelegramApp(API_ID, API_HASH, MODEL, SYSTEM_VERSION, APP_VERSION, LANG_CODE);
     }
 
-    private TelegramClient getNewTelegramClient(UpdateCallback callback) {
+    public TelegramClient getNewTelegramClient(UpdateCallback callback) {
         TelegramClient telegramClient;
 
         TmApiStorage apiStorage = new TmApiStorage(authKeyFile, nearestDcFile);
@@ -81,21 +78,42 @@ public class TelegramMessenger extends Messenger {
         return telegramClient;
     }
 
+    public TelegramClient getDownloaderClient() {
+        return getNewTelegramClient(null).getDownloaderClient();
+    }
+
+    public Observable<Object> logOutObs() {
+        return Observable.create(logOutObs -> {
+            Object returnObject = null;
+            TelegramClient client = getNewTelegramClient(null);
+            try {
+                returnObject = client.authLogOut();
+                setCurrentUser(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                returnObject = e;
+            } finally {
+                client.close(false);
+                logOutObs.onNext(returnObject);
+            }
+        });
+    }
+
     @Override
     public Observable<Boolean> checkUserAuthObs() {
-        return Observable.create(observableTmAuth -> {
+        return Observable.create(telegramAuthObs -> {
             boolean isHasAuth = false;
             TelegramClient client = getNewTelegramClient(null);
 
             try {
-                setChatUser(TelegramHelper.Users.getChatUserFromInput(client, context, new TLInputUserSelf()));
+                setCurrentUser(TelegramHelper.Users.getChatUserFromInput(client, context, new TLInputUserSelf()));
                 isHasAuth = true;
             } catch (Exception e) {
                 e.printStackTrace();
                 isHasAuth = false;
             } finally {
                 client.close(false);
-                observableTmAuth.onNext(isHasAuth);
+                telegramAuthObs.onNext(isHasAuth);
             }
         });
     }
@@ -105,10 +123,6 @@ public class TelegramMessenger extends Messenger {
         return Observable.create(messagesObs -> {
             ArrayList<Chat> chatsList = new ArrayList<>();
             TelegramClient client = getNewTelegramClient(null).getDownloaderClient();
-
-            CurrentUser currentUser = App.INSTANCE.getCurrentUser();
-            if (currentUser.getTelegramChatUser() == null)
-                currentUser.setTelegramChatUser(TelegramHelper.Chats.getChatUser(client, currentUser.getTelegramUser().getId(), context));
 
             TLAbsDialogs tlAbsDialogs = client.messagesGetDialogs(false, 0, 0, new TLInputPeerEmpty(), 10000); //have no idea how to avoid the limit without a huge number
 
@@ -137,7 +151,7 @@ public class TelegramMessenger extends Messenger {
 
                     try {
                         if (peer instanceof TLPeerChat || peer instanceof TLPeerChannel) {
-                            if (message.getFromId() == App.INSTANCE.getCurrentUser().getTelegramUser().getId()) {
+                            if (message.getFromId() == getCurrentUser().getIntId()) {
                                 fromName = "Вы";
                             } else {
                                 TLUser user = TelegramHelper.Users.getUser(client, message.getFromId()).getUser().getAsUser();
@@ -149,7 +163,7 @@ public class TelegramMessenger extends Messenger {
                             }
                         }
 
-                        if (peer instanceof TLPeerUser && message.getFromId() == App.INSTANCE.getCurrentUser().getTelegramUser().getId())
+                        if (peer instanceof TLPeerUser && message.getFromId() == getCurrentUser().getIntId())
                             fromName = "Вы";
                     } catch (Exception e) {
                         Log.e("TAG", "Is not a user");
@@ -204,7 +218,7 @@ public class TelegramMessenger extends Messenger {
 
             try {
                 TLAuthorization authorization = client.authSignIn(phoneNumber, sentCode.getPhoneCodeHash(), authCode);
-                setChatUser(TelegramHelper.Users.getChatUserFromInput(client, context, new TLInputUserSelf()));
+                setCurrentUser(TelegramHelper.Users.getChatUserFromInput(client, context, new TLInputUserSelf()));
                 returnObject = authorization;
             } catch (Exception e) {
                 e.printStackTrace();

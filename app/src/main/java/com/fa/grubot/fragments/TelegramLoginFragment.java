@@ -1,7 +1,5 @@
 package com.fa.grubot.fragments;
 
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,18 +14,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.fa.grubot.App;
-import com.fa.grubot.LoginActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.TelegramLoginFragmentBase;
 import com.fa.grubot.presenters.TelegramLoginPresenter;
-import com.fa.grubot.util.Globals;
-import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.tl.api.auth.TLSentCode;
-import com.github.badoualy.telegram.tl.exception.RpcErrorException;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -39,8 +31,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 import io.reactivex.schedulers.Schedulers;
-
-import static com.fa.grubot.App.INSTANCE;
 
 public class TelegramLoginFragment extends Fragment implements TelegramLoginFragmentBase {
     @Nullable @BindView(R.id.phoneNumber) EditText phoneNumberText;

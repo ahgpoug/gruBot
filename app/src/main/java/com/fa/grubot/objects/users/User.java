@@ -31,6 +31,10 @@ public class User implements Serializable, IUser {
         return userId;
     }
 
+    public int getIntId() {
+        return Integer.valueOf(userId);
+    }
+
     @Override
     public String getName() {
         return fullname;

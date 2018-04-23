@@ -1,5 +1,8 @@
 package com.fa.grubot.helpers;
 
+import com.fa.grubot.objects.users.User;
+import com.fa.grubot.objects.users.VkUser;
+import com.fa.grubot.util.Consts;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
@@ -14,6 +17,14 @@ import com.vk.sdk.api.VKResponse;
 public class VkHelper {
 
     private static UserInfo info;
+
+    public static User convertVkUser(VkUser vkUser) {
+        return new User(String.valueOf(vkUser.getId()),
+                Consts.VK,
+                vkUser.getFirstName() + " " + vkUser.getLastName(),
+                vkUser.getDomain(),
+                null); //TODO change this
+    }
 
     public static UserInfo getVkUserInfoById(String id){
         UserInfo user;

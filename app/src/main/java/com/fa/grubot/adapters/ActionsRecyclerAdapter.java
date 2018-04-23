@@ -82,9 +82,10 @@ public class ActionsRecyclerAdapter extends RecyclerView.Adapter<ActionsRecycler
         } else if (action instanceof ActionPoll){
             holder.actionTypeText.setText("Голосование");
             holder.viewForeground.setOnClickListener(v -> {
-                int userId = action.getType().equals(Consts.Telegram) ? App.INSTANCE.getCurrentUser().getTelegramUser().getId() : App.INSTANCE.getCurrentUser().getVkUser().getId();
+                int userId = action.getType().equals(Consts.Telegram) ? App.INSTANCE.telegramMessenger.getCurrentUser().getIntId() : App.INSTANCE.vkMessenger.getCurrentUser().getIntId();
                 String value = String.valueOf(action.getUsers().get(String.valueOf(userId)));
                 int currentSelectedOption = value.equals("new") ? 0 : Integer.valueOf(value) - 1;
+
                 new MaterialDialog.Builder(context)
                         .title(action.getGroupName() + ": " + action.getDesc())
                         .items(((ActionPoll) action).getOptions())

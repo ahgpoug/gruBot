@@ -112,20 +112,17 @@ public class ChatFragment extends Fragment
 
     @Override
     public void onPause() {
-        App.INSTANCE.closeTelegramClient();
         super.onPause();
     }
 
     @Override
     public void onStop() {
         Log.d("tag", "onStop called");
-        App.INSTANCE.closeTelegramClient();
         super.onStop();
     }
 
     @Override
     public void onDestroy() {
-        App.INSTANCE.closeTelegramClient();
         presenter.destroy();
         unbinder.unbind();
         super.onDestroy();
@@ -237,7 +234,7 @@ public class ChatFragment extends Fragment
         if (type.equals(Consts.VK)){
             userId = VKAccessToken.currentToken().userId;
         } else if (type.equals(Consts.Telegram)){
-            userId = String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId());
+            userId = App.INSTANCE.telegramMessenger.getCurrentUser().getId();
         }
 
         messagesListAdapter = new MessagesListAdapter<>(userId, holdersConfig, imageLoader);

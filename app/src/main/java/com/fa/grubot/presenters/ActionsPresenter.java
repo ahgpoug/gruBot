@@ -41,23 +41,25 @@ public class ActionsPresenter {
 
     public void notifyFragmentStarted(int type) {
         this.type = type;
-
-        switch (type) {
-            case ActionsFragment.TYPE_ANNOUNCEMENTS:
-                actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-                break;
-            case ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE:
-                actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "archive");
-                break;
-            case ActionsFragment.TYPE_POLLS:
-                actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-                break;
-            case ActionsFragment.TYPE_POLLS_ARCHIVE:
-                actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), 0);
-                break;
-            case ActionsFragment.TYPE_ARTICLES:
-                actionsQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + App.INSTANCE.getCurrentUser().getTelegramUser().getId(), "new");
-                break;
+        if (App.INSTANCE.telegramMessenger.isHasUser()) {
+            String telegramUserId = App.INSTANCE.telegramMessenger.getCurrentUser().getUserId();
+            switch (type) {
+                case ActionsFragment.TYPE_ANNOUNCEMENTS:
+                    actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + telegramUserId, "new");
+                    break;
+                case ActionsFragment.TYPE_ANNOUNCEMENTS_ARCHIVE:
+                    actionsQuery = FirebaseFirestore.getInstance().collection("announcements").whereEqualTo("users." + telegramUserId, "archive");
+                    break;
+                case ActionsFragment.TYPE_POLLS:
+                    actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereEqualTo("users." + telegramUserId, "new");
+                    break;
+                case ActionsFragment.TYPE_POLLS_ARCHIVE:
+                    actionsQuery = FirebaseFirestore.getInstance().collection("votes").whereGreaterThan("users." + telegramUserId, 0);
+                    break;
+                case ActionsFragment.TYPE_ARTICLES:
+                    actionsQuery = FirebaseFirestore.getInstance().collection("articles").whereEqualTo("users." + telegramUserId, "new");
+                    break;
+            }
         }
 
         setRegistration(type);
@@ -184,7 +186,7 @@ public class ActionsPresenter {
                 .addOnSuccessListener(documentSnapshot -> {
                     Map<String, String> users = (Map<String, String>) documentSnapshot.get("users");
 
-                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "archive");
+                    users.put(App.INSTANCE.telegramMessenger.getCurrentUser().getId(), "archive");
 
                     FirebaseFirestore.getInstance().collection("announcements")
                             .document(announcement.getId())
@@ -204,7 +206,7 @@ public class ActionsPresenter {
                 .addOnSuccessListener(documentSnapshot -> {
                     Map<String, String> users = (Map<String, String>) documentSnapshot.get("users");
 
-                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "-1");
+                    users.put(App.INSTANCE.telegramMessenger.getCurrentUser().getId(), "-1");
 
                     FirebaseFirestore.getInstance().collection("votes")
                             .document(vote.getId())
@@ -219,8 +221,6 @@ public class ActionsPresenter {
     public void restoreActionFromArchive(Action action, int type) {
         if (type == ActionsFragment.TYPE_ANNOUNCEMENTS) {
             restoreAnnouncementFromArchive((ActionAnnouncement) action);
-        } else {
-            restorePollFromArchive((ActionPoll) action);
         }
     }
 
@@ -232,26 +232,16 @@ public class ActionsPresenter {
                 .addOnSuccessListener(documentSnapshot -> {
                     Map<String, String> users = (Map<String, String>) documentSnapshot.get("users");
 
-                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "new");
+                    String userId;
+                    if (announcement.getType().equals(Consts.Telegram))
+                        userId = App.INSTANCE.telegramMessenger.getCurrentUser().getId();
+                    else
+                        userId = App.INSTANCE.vkMessenger.getCurrentUser().getId();
+
+                    users.put(userId, "new");
 
                     FirebaseFirestore.getInstance().collection("announcements")
                             .document(announcement.getId())
-                            .update("users", users);
-                });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void restorePollFromArchive(ActionPoll vote) {
-        FirebaseFirestore.getInstance().collection("votes")
-                .document(vote.getId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    Map<String, String> users = (Map<String, String>) documentSnapshot.get("users");
-
-                    users.put(String.valueOf(App.INSTANCE.getCurrentUser().getTelegramUser().getId()), "new");
-
-                    FirebaseFirestore.getInstance().collection("votes")
-                            .document(vote.getId())
                             .update("users", users);
                 });
     }

@@ -54,13 +54,13 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
         fragment.setupToolbar();
 
         if (Globals.InternetMethods.isNetworkAvailable(context)) {
-            if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
+            if (App.INSTANCE.telegramMessenger.isHasUser()) {
                 tListObservable = model.sendChatsListRequest();
             } else {
                 tListObservable = Observable.just(new ArrayList<>());
             }
 
-            if (App.INSTANCE.getCurrentUser().hasVkUser()) {
+            if (App.INSTANCE.vkMessenger.isHasUser()) {
                 vkListObservable = model.sendVkChatListRequest();
             } else {
                 vkListObservable = Observable.just(new ArrayList<>());
@@ -133,7 +133,7 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
                 }
 
                 if (Globals.InternetMethods.isNetworkAvailable(context))
-                    client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+                    client = App.INSTANCE.telegramMessenger.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
                 else
                     notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
 

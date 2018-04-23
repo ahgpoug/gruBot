@@ -15,7 +15,6 @@ import com.fa.grubot.App;
 import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.InitialLoginFragmentBase;
-import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.objects.users.VkUser;
 import com.fa.grubot.presenters.InitialLoginPresenter;
 import com.vk.sdk.VKAccessToken;
@@ -115,12 +114,11 @@ public class InitialLoginFragment extends Fragment implements InitialLoginFragme
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
-            public void onResult(VKAccessToken res) {
-                VkUser vkUser = new VkUser(res.accessToken);
+            public void onResult(VKAccessToken vkAccessToken) {
+                VkUser vkUser = new VkUser(vkAccessToken.accessToken);
                 Toast.makeText(getActivity(), "Hello, " + vkUser.getFirstName(), Toast.LENGTH_LONG).show();
-                res.saveTokenToFile(App.INSTANCE.getVkTokenFilePath());
-                App.INSTANCE.setCurrentUser(new CurrentUser(null, vkUser));
-                getContext().startActivity(new Intent(getContext(), MainActivity.class));
+                App.INSTANCE.vkMessenger.setVkUser(vkAccessToken);
+                getActivity().startActivity(new Intent(getActivity(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
             }
 
             @Override

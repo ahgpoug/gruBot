@@ -24,9 +24,9 @@ public class ProfilePagerAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                return ProfileItemFragment.newInstance(App.INSTANCE.getCurrentUser().getVkUser().getId(), Consts.VK, null, Consts.PROFILE_MODE_DUAL);
+                return ProfileItemFragment.newInstance(App.INSTANCE.vkMessenger.getCurrentUser().getIntId(), Consts.VK, null, Consts.PROFILE_MODE_DUAL);
             case 1:
-                return ProfileItemFragment.newInstance(App.INSTANCE.getCurrentUser().getTelegramUser().getId(), Consts.Telegram, App.INSTANCE.getCurrentUser().getTelegramChatUser(), Consts.PROFILE_MODE_DUAL);
+                return ProfileItemFragment.newInstance(App.INSTANCE.telegramMessenger.getCurrentUser().getIntId(), Consts.Telegram, App.INSTANCE.telegramMessenger.getCurrentUser(), Consts.PROFILE_MODE_DUAL);
             default:
                 return null;
         }

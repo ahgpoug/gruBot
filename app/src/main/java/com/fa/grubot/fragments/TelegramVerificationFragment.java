@@ -1,12 +1,8 @@
 package com.fa.grubot.fragments;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -17,22 +13,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.fa.grubot.App;
-import com.fa.grubot.LoginActivity;
 import com.fa.grubot.MainActivity;
 import com.fa.grubot.R;
 import com.fa.grubot.abstractions.TelegramVerificationFragmentBase;
-import com.fa.grubot.objects.users.CurrentUser;
 import com.fa.grubot.presenters.TelegramVerificationPresenter;
-import com.fa.grubot.util.Globals;
-import com.github.badoualy.telegram.api.TelegramClient;
-import com.github.badoualy.telegram.tl.api.TLUser;
 import com.github.badoualy.telegram.tl.api.auth.TLAuthorization;
 import com.github.badoualy.telegram.tl.api.auth.TLSentCode;
-import com.github.badoualy.telegram.tl.exception.RpcErrorException;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -44,8 +32,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 import io.reactivex.schedulers.Schedulers;
-
-import static com.fa.grubot.App.INSTANCE;
 
 public class TelegramVerificationFragment extends Fragment implements TelegramVerificationFragmentBase {
     @Nullable @BindView(R.id.verificationCode) EditText verificationCodeText;

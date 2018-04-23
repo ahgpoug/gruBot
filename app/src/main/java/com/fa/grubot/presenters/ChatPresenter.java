@@ -159,8 +159,8 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
                         User user = users.get(fromId);
                         if (user == null) {
                             try {
-                                if (fromId == App.INSTANCE.getCurrentUser().getTelegramUser().getId())
-                                    user = App.INSTANCE.getCurrentUser().getTelegramChatUser();
+                                if (fromId == App.INSTANCE.telegramMessenger.getCurrentUser().getIntId())
+                                    user = App.INSTANCE.telegramMessenger.getCurrentUser();
                                 else {
                                     TLAbsMessages tlAbsMessages = client.messagesGetHistory(chat.getInputPeer(), 0, 0, 0, 40, 0, 1);
                                     users = TelegramHelper.Chats.getChatUsers(client, tlAbsMessages, context);
@@ -194,7 +194,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
                 }
             };
             if (Globals.InternetMethods.isNetworkAvailable(context))
-                client = App.INSTANCE.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+                client = App.INSTANCE.telegramMessenger.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
             else
                 notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
         });

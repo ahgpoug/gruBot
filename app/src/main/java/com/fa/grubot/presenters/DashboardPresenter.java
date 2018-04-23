@@ -77,10 +77,10 @@ public class DashboardPresenter {
 
     public void notifyFragmentStarted() {
         fragment.setupToolbar();
-        if (App.INSTANCE.getCurrentUser().hasTelegramUser()) {
+        if (App.INSTANCE.telegramMessenger.isHasUser()) {
             setRegistration();
         }
-        if(App.INSTANCE.getCurrentUser().hasVkUser()){
+        if(App.INSTANCE.vkMessenger.isHasUser()){
             setRegistrationVk();
         }
     }

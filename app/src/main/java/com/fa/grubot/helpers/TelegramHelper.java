@@ -300,7 +300,7 @@ public class TelegramHelper {
 
                 TLInputUser inputUser = new TLInputUser();
                 inputUser.setUserId(chatId);
-                inputUser.setAccessHash(App.INSTANCE.getCurrentUser().getTelegramUser().getAccessHash());
+                inputUser.setAccessHash(App.INSTANCE.telegramMessenger.getCurrentUser().getAbsUser().getAsUser().getAccessHash());
 
                 TLVector<TLAbsInputUser> users = new TLVector<>();
                 users.add(inputUser);

@@ -60,6 +60,10 @@ public class VkUser {
         this.firstName = firstName;
     }
 
+    public String getDomain() {
+        return domain;
+    }
+
     public int getId() {
         return id;
     }

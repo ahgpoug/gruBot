@@ -5,9 +5,11 @@ import android.content.Context;
 import android.util.Log;
 
 import com.fa.grubot.helpers.VkDialogParser;
+import com.fa.grubot.helpers.VkHelper;
 import com.fa.grubot.objects.chat.Chat;
 import com.fa.grubot.objects.chat.ChatMessage;
 import com.fa.grubot.objects.users.User;
+import com.fa.grubot.objects.users.VkUser;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
@@ -49,6 +51,14 @@ public class VkMessenger extends Messenger {
 
         vkAccessTokenTracker.startTracking();
         VKSdk.initialize(context.getApplicationContext());
+    }
+
+    public User setVkUser(VKAccessToken vkAccessToken) {
+        VkUser vkUser = new VkUser(vkAccessToken.accessToken);
+        vkAccessToken.saveTokenToFile(vkAccessTokenFile.getPath());
+        setCurrentUser(VkHelper.convertVkUser(vkUser));
+
+        return getCurrentUser();
     }
 
     @Override

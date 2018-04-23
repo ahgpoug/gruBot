@@ -196,17 +196,11 @@ public class ChatModel {
 
         @Override
         protected Object doInBackground(Void... params) {
-            TelegramClient client = App.INSTANCE.getNewDownloaderClient().getDownloaderClient();
+            TelegramClient client = App.INSTANCE.telegramMessenger.getDownloaderClient();
             Object returnObject;
 
             try {
                 TLAbsUpdates tlAbsUpdates = client.messagesSendMessage(chat.getInputPeer(), message, Math.abs(new Random().nextLong()));
-
-                User user;
-                if (App.INSTANCE.getCurrentUser().getTelegramChatUser() != null)
-                    user = App.INSTANCE.getCurrentUser().getTelegramChatUser();
-                else
-                    user = TelegramHelper.Chats.getChatUser(client, App.INSTANCE.getCurrentUser().getTelegramUser().getId(), context.get());
 
                 String messageId = null;
                 Date messageDate = null;
@@ -239,7 +233,7 @@ public class ChatModel {
                 }
 
                 if (messageId != null && messageDate != null)
-                    returnObject = new ChatMessage(messageId, message, user, messageDate);
+                    returnObject = new ChatMessage(messageId, message, App.INSTANCE.telegramMessenger.getCurrentUser(), messageDate);
                 else
                     returnObject = null;
             } catch (Exception e) {
@@ -289,7 +283,7 @@ public class ChatModel {
 
         @Override
         protected Object doInBackground(Void... params) {
-            TelegramClient client = App.INSTANCE.getNewDownloaderClient();
+            TelegramClient client = App.INSTANCE.telegramMessenger.getDownloaderClient();
             Object returnObject;
 
             try {
