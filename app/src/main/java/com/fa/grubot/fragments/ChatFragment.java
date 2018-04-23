@@ -99,7 +99,7 @@ public class ChatFragment extends Fragment
     public void onResume() {
         presenter.notifyFragmentStarted(chat);
         if (chat.getType().equals(Consts.Telegram)) {
-            presenter.setUpdateCallback();
+            //presenter.setUpdateCallback();
         } else if (chat.getType().equals(Consts.VK) && false){
             presenter.setupPollingVk();
         }
@@ -208,7 +208,7 @@ public class ChatFragment extends Fragment
 
     public void addNewMessagesToList(ArrayList<ChatMessage> messages, boolean moveToTop) {
         if (!messages.isEmpty())
-            messagesListAdapter.addToEnd(messages, true);
+            messagesListAdapter.addToEnd(messages, false);
     }
 
     @Override

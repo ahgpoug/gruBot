@@ -4,6 +4,7 @@ package com.fa.grubot.presenters;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.fa.grubot.App;
 import com.fa.grubot.abstractions.ChatsListFragmentBase;
@@ -117,29 +118,29 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
                 fragment.updateChatsList(chats, moveToTop);
             }
 
-            if (client == null || client.isClosed())
-                setUpdateCallback();
+            setUpdateCallback();
         }
     }
 
     public void setUpdateCallback() {
-        if (!callbackInitialized) {
+        //if (true) {//!callbackInitialized) {
             callbackInitialized = true;
             AsyncTask.execute(() -> {
-                try {
-                    Thread.sleep(3000); //todo dirty little hack
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                //try {
+                //    Thread.sleep(3000); //todo dirty little hack
+                //} catch (InterruptedException e) {
+                //    e.printStackTrace();
+                //}
 
                 if (Globals.InternetMethods.isNetworkAvailable(context))
-                    client = App.INSTANCE.telegramMessenger.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+                    client = App.INSTANCE.telegramMessenger.getTelegramClient(new TelegramEventCallback(telegramEventListener, context));
                 else
                     notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
 
                 telegramEventListener = new TelegramEventCallback.TelegramEventListener() {
                     @Override
                     public void onMessage(TelegramMessageEvent telegramMessageEvent) {
+                        Log.d("Debug", "message");
                         ((AppCompatActivity) context).runOnUiThread(()
                                 -> onChatsListResult(model.onNewMessage(chats, telegramMessageEvent),
                                 true));
@@ -147,6 +148,7 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
 
                     @Override
                     public void onUserNameUpdate(TelegramUpdateUserNameEvent telegramUpdateUserNameEvent) {
+                        Log.d("Debug", "here1");
                         ((AppCompatActivity) context).runOnUiThread(()
                                 -> onChatsListResult(model.onUserNameUpdate(chats, telegramUpdateUserNameEvent),
                                 false));
@@ -154,13 +156,14 @@ public class ChatsListPresenter implements ChatsListRequestResponse {
 
                     @Override
                     public void onUserPhotoUpdate(TelegramUpdateUserPhotoEvent telegramUpdateUserPhotoEvent) {
+                        Log.d("Debug", "here2");
                         ((AppCompatActivity) context).runOnUiThread(()
                                 -> onChatsListResult(model.onUserPhotoUpdate(chats, telegramUpdateUserPhotoEvent),
                                 false));
                     }
                 };
             });
-        }
+        //}
     }
 
     @Override

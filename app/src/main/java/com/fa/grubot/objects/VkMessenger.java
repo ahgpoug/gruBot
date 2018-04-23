@@ -3,11 +3,11 @@ package com.fa.grubot.objects;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.fa.grubot.helpers.VkDialogParser;
 import com.fa.grubot.helpers.VkHelper;
 import com.fa.grubot.objects.chat.Chat;
-import com.fa.grubot.objects.chat.ChatMessage;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.objects.users.VkUser;
 import com.vk.sdk.VKAccessToken;
@@ -115,7 +115,7 @@ public class VkMessenger extends Messenger {
     }
 
     @Override
-    public ArrayList<ChatMessage> getChatMessagesListObs(int start, int end) {
+    public Observable<Object> getChatMessagesListObs(int flag, Chat chat, int totalMessages, final SparseArray<User> inputUsers) {
         return null;
     }
 

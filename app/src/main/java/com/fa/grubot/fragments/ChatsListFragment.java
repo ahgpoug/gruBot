@@ -85,16 +85,6 @@ public class ChatsListFragment extends BaseFragment implements ChatsListFragment
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
-    @Override
     public void onDestroy() {
         presenter.destroy();
         super.onDestroy();

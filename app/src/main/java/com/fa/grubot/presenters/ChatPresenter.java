@@ -5,11 +5,11 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
+import android.widget.Toast;
 
 import com.fa.grubot.App;
 import com.fa.grubot.abstractions.ChatFragmentBase;
 import com.fa.grubot.abstractions.ChatMessageSendRequestResponse;
-import com.fa.grubot.abstractions.MessagesListRequestResponse;
 import com.fa.grubot.callbacks.TelegramEventCallback;
 import com.fa.grubot.helpers.TelegramHelper;
 import com.fa.grubot.models.ChatModel;
@@ -36,11 +36,14 @@ import org.json.JSONException;
 import java.sql.Date;
 import java.util.ArrayList;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import rx.Single;
 
 import static com.fa.grubot.util.Consts.STATE_NO_INTERNET_CONNECTION;
 
-public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSendRequestResponse {
+public class ChatPresenter implements ChatMessageSendRequestResponse {
 
     private ChatFragmentBase fragment;
     private ChatModel model;
@@ -66,7 +69,8 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
 
         if (Globals.InternetMethods.isNetworkAvailable(context)) {
             if (chat.getType().equals(Consts.Telegram)) {
-                model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+                Observable<Object> messagesListObs = App.INSTANCE.telegramMessenger.getChatMessagesListObs(Consts.FLAG_LOAD_FIRST_MESSAGES, chat, 0, users);
+                runMessagesListObs(messagesListObs, Consts.FLAG_LOAD_FIRST_MESSAGES, true);
             } else if (chat.getType().equals(Consts.VK)) {
                 model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             }
@@ -81,7 +85,6 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         } else if (chat.getType().equals(Consts.VK)) {
             model.sendVkMessage(context, chat, presenter, message);
         }
-
     }
 
     @Override
@@ -90,7 +93,6 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         fragment.onMessageReceived(chatMessage);
     }
 
-    @Override
     public void onMessagesListResult(CombinedMessagesListObject combinedMessagesListObject, int flag, boolean moveToTop) {
         this.messages = combinedMessagesListObject.getMessages();
         this.users = combinedMessagesListObject.getUsers();
@@ -116,6 +118,21 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         }
     }
 
+    private void runMessagesListObs(Observable<Object> observable, int flag, boolean moveToTop) {
+        Observable.defer(() -> observable)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(returnObject -> {
+                    if (returnObject instanceof CombinedMessagesListObject) {
+                        CombinedMessagesListObject combinedObject = (CombinedMessagesListObject) returnObject;
+                        onMessagesListResult(combinedObject, flag, moveToTop);
+                    } else if (returnObject instanceof Exception) {
+                        Toast.makeText(context, "Ошибка: " + ((Exception) returnObject).getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                })
+                .subscribe();
+    }
+
     private void onMessageReceived(ChatMessage chatMessage) {
         if (!messageAlreadyAdded(chatMessage)) {
             messages.add(chatMessage);
@@ -124,7 +141,8 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
     }
 
     public void loadMoreMessages(int totalCount) {
-        model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalCount, users);
+        Observable<Object> messagesListObs = App.INSTANCE.telegramMessenger.getChatMessagesListObs(Consts.FLAG_LOAD_NEW_MESSAGES, chat, totalCount, users);
+        runMessagesListObs(messagesListObs, Consts.FLAG_LOAD_NEW_MESSAGES, false);
     }
 
     private void notifyViewCreated(int state) {
@@ -194,7 +212,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
                 }
             };
             if (Globals.InternetMethods.isNetworkAvailable(context))
-                client = App.INSTANCE.telegramMessenger.getNewTelegramClient(new TelegramEventCallback(telegramEventListener, context));
+                client = App.INSTANCE.telegramMessenger.getTelegramClient(new TelegramEventCallback(telegramEventListener, context));
             else
                 notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
         });
@@ -244,18 +262,11 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
     public void onRetryBtnClick() {
         if (Globals.InternetMethods.isNetworkAvailable(context))
             if (chat.getType().equals(Consts.Telegram)) {
-                model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+                Observable<Object> messagesListObs = App.INSTANCE.telegramMessenger.getChatMessagesListObs(Consts.FLAG_LOAD_FIRST_MESSAGES, chat, 0, users);
+                runMessagesListObs(messagesListObs, Consts.FLAG_LOAD_FIRST_MESSAGES, true);
             } else if (chat.getType().equals(Consts.VK)) {
                 model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             }
-    }
-
-    public void retryLoad(Chat chat, int flag, int totalMessages, SparseArray<User> users) {
-        if (chat.getType().equals(Consts.Telegram)) {
-            model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalMessages, users);
-        } else if (chat.getType().equals(Consts.VK)) {
-            model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, 0, users);
-        }
     }
 
     private boolean messageAlreadyAdded(ChatMessage chatMessage) {
