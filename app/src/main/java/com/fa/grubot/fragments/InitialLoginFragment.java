@@ -117,7 +117,7 @@ public class InitialLoginFragment extends Fragment implements InitialLoginFragme
             public void onResult(VKAccessToken vkAccessToken) {
                 VkUser vkUser = new VkUser(vkAccessToken.accessToken);
                 Toast.makeText(getActivity(), "Hello, " + vkUser.getFirstName(), Toast.LENGTH_LONG).show();
-                App.INSTANCE.vkMessenger.setVkUser(vkAccessToken);
+                App.INSTANCE.vkMessenger.setCurrentUserFromVk(vkAccessToken);
                 getActivity().startActivity(new Intent(getActivity(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
             }
 

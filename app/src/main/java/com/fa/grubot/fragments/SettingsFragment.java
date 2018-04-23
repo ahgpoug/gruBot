@@ -199,7 +199,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Serial
             @Override
             public void onResult(VKAccessToken vkAccessToken) {
                 Preference vkAccount = findPreference("vkAccount");
-                User user = App.INSTANCE.vkMessenger.setVkUser(vkAccessToken);
+                User user = App.INSTANCE.vkMessenger.setCurrentUserFromVk(vkAccessToken);
                 vkAccount.setSummary(user.getFullname());
             }
 

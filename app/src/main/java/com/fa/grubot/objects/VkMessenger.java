@@ -53,7 +53,7 @@ public class VkMessenger extends Messenger {
         VKSdk.initialize(context.getApplicationContext());
     }
 
-    public User setVkUser(VKAccessToken vkAccessToken) {
+    public User setCurrentUserFromVk(VKAccessToken vkAccessToken) {
         VkUser vkUser = new VkUser(vkAccessToken.accessToken);
         vkAccessToken.saveTokenToFile(vkAccessTokenFile.getPath());
         setCurrentUser(VkHelper.convertVkUser(vkUser));
@@ -67,6 +67,7 @@ public class VkMessenger extends Messenger {
             boolean isHasAuth = false;
             if (VKSdk.isLoggedIn() && VKAccessToken.tokenFromFile(vkAccessTokenFile.getPath()) != null) {
                 isHasAuth = true;
+                setCurrentUserFromVk(VKAccessToken.tokenFromFile(vkAccessTokenFile.getPath()));
             }
 
             observableVkAuth.onNext(isHasAuth);
