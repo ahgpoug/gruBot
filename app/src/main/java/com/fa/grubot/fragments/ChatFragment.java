@@ -149,8 +149,8 @@ public class ChatFragment extends Fragment
     public void onLoadMore(int page, int totalItemsCount) {
         if (chat.getType().equals(Consts.Telegram)) {
             presenter.loadMoreMessages(totalItemsCount);
-        } else if (chat.getType().equals(Consts.Telegram)){
-            presenter.loadmoreVkMessages();
+        } else if (chat.getType().equals(Consts.VK)){
+            presenter.loadmoreVkMessages(page);
         }
     }
 

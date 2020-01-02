@@ -19,26 +19,15 @@ import com.fa.grubot.objects.events.telegram.TelegramMessageEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserNameEvent;
 import com.fa.grubot.objects.events.telegram.TelegramUpdateUserPhotoEvent;
 import com.fa.grubot.objects.misc.CombinedMessagesListObject;
-import com.fa.grubot.objects.pojos.PollingSererInfo;
 import com.fa.grubot.objects.users.User;
 import com.fa.grubot.util.Consts;
 import com.fa.grubot.util.Globals;
 import com.github.badoualy.telegram.api.TelegramClient;
 import com.github.badoualy.telegram.tl.api.messages.TLAbsMessages;
-import com.google.gson.Gson;
-import com.vk.sdk.api.VKApiConst;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-import com.vk.sdk.api.model.VKApiPoll;
-
-import org.json.JSONException;
 
 import java.sql.Date;
 import java.util.ArrayList;
-
-import rx.Single;
 
 import static com.fa.grubot.util.Consts.STATE_NO_INTERNET_CONNECTION;
 
@@ -70,7 +59,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
             if (chat.getType().equals(Consts.Telegram)) {
                 model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             } else if (chat.getType().equals(Consts.VK)) {
-                model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+                model.sendVkMessagesRequest( presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             }
         } else {
             notifyViewCreated(STATE_NO_INTERNET_CONNECTION);
@@ -127,6 +116,10 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
 
     public void loadMoreMessages(int totalCount) {
         model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalCount, users);
+    }
+
+    public void loadmoreVkMessages(int page) {
+        model.sendVkMessagesRequest(presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, page, users);
     }
 
     private void notifyViewCreated(int state) {
@@ -203,43 +196,6 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
     }
 
     public void setupPollingVk() {
-        VKRequest request = new VKRequest("messages.getLongPollServer",
-                VKParameters.from("need_pts", 1));
-        Single.create(ss -> {
-            request.executeWithListener(new VKRequest.VKRequestListener() {
-                @Override
-                public void onComplete(VKResponse response) {
-                    Gson gson = new Gson();
-                    try {
-                        PollingSererInfo psi = gson.fromJson(response.json.getJSONObject("response").toString(), PollingSererInfo.class);
-                        ss.onSuccess(psi);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onError(VKError error) {
-                    super.onError(error);
-                }
-            });
-        }).map(obj -> (PollingSererInfo) obj)
-                .subscribe(psi -> {
-                    VKRequest requesPolling = new VKRequest("messages.getLongPollHistory",
-                            VKParameters.from("ts", psi.getTs()));
-                    requesPolling.executeWithListener(new VKRequest.VKRequestListener() {
-                        @Override
-                        public void onComplete(VKResponse response) {
-                            super.onComplete(response);
-
-                        }
-
-                        @Override
-                        public void onError(VKError error) {
-                            super.onError(error);
-                        }
-                    });
-                });
 
     }
 
@@ -248,7 +204,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
             if (chat.getType().equals(Consts.Telegram)) {
                 model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             } else if (chat.getType().equals(Consts.VK)) {
-                model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
+                model.sendVkMessagesRequest(presenter, chat, Consts.FLAG_LOAD_FIRST_MESSAGES, 0, users);
             }
     }
 
@@ -256,7 +212,7 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
         if (chat.getType().equals(Consts.Telegram)) {
             model.sendTelegramMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, totalMessages, users);
         } else if (chat.getType().equals(Consts.VK)) {
-            model.sendVkMessagesRequest(context, presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, 0, users);
+            model.sendVkMessagesRequest(presenter, chat, Consts.FLAG_LOAD_NEW_MESSAGES, 0, users);
         }
     }
 
@@ -274,8 +230,5 @@ public class ChatPresenter implements MessagesListRequestResponse, ChatMessageSe
             client.close(false);
         fragment = null;
         model = null;
-    }
-
-    public void loadmoreVkMessages() {
     }
 }

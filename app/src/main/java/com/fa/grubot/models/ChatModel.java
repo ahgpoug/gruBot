@@ -49,10 +49,13 @@ import org.json.JSONException;
 import java.lang.ref.WeakReference;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 public class ChatModel {
+
+    private String oldestLoadedMessage;
 
     public ChatModel() {
     }
@@ -98,7 +101,7 @@ public class ChatModel {
 
     }
 
-    public void sendVkMessagesRequest(Context context, ChatPresenter presenter, Chat chat, int flag, int totalMessages, SparseArray<User> users) {
+    public void sendVkMessagesRequest(ChatPresenter presenter, Chat chat, int flag, int page, SparseArray<User> users) {
 
         String peerId;
         if (chat.getChatId() != null){
@@ -108,8 +111,17 @@ public class ChatModel {
         }
 
 
-        VKRequest request = new VKRequest("messages.getHistory",
-                VKParameters.from(VKApiConst.USER_ID, peerId));
+        VKRequest request;
+        if (flag == Consts.FLAG_LOAD_FIRST_MESSAGES) {
+            request = new VKRequest("messages.getHistory",
+                    VKParameters.from(VKApiConst.USER_ID, peerId));
+        } else {
+            request = new VKRequest("messages.getHistory",
+                    VKParameters.from(VKApiConst.USER_ID, peerId, "offset",
+                            page * 20));
+            oldestLoadedMessage = String.valueOf(Integer.valueOf(oldestLoadedMessage) - 20);
+        }
+
         request.executeWithListener(new VKRequest.VKRequestListener() {
 
             @Override
@@ -121,7 +133,11 @@ public class ChatModel {
                 for (VKApiMessage msg: messages.items) {
                     users.put(msg.out ? Integer.valueOf(VKAccessToken.currentToken().userId)  : msg.user_id, new User(msg.out ? VKAccessToken.currentToken().userId  : String.valueOf(msg.user_id), Consts.VK, null, null, null));
                     msgs.add(new ChatMessage(String.valueOf(msg.getId()), msg.body, new User(msg.out ? VKAccessToken.currentToken().userId  : String.valueOf(msg.user_id), Consts.VK, null, null, null),
-                            new Date(msg.date)));
+                            new Date(msg.date * 1000)));
+                }
+
+                if (flag == Consts.FLAG_LOAD_NEW_MESSAGES){
+                    Collections.reverse(msgs);
                 }
 
                 CombinedMessagesListObject cmlo = new CombinedMessagesListObject(msgs, users);
@@ -135,6 +151,7 @@ public class ChatModel {
                     usr.setUserName(users.get(Integer.valueOf(usr.getId())).getFullname());
                 }
 
+                oldestLoadedMessage = msgs.get(0).getId();
                 presenter.onMessagesListResult(cmlo, flag, false);
 
             }
